@@ -40,7 +40,7 @@ AGV::AGV(string fileName)
 		}
 	}
 	file.close();
-	G = MultiGraph(guidePath);
+	G = MultiGraph(guidePath, nh);
 	Ghat = G;
 	if (Ghat.AddVehicules(A))
 		cout << "All vehicules added" << endl;

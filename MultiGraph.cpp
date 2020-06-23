@@ -3,11 +3,13 @@
 MultiGraph::MultiGraph()
 {
 	n = 0;
+	nh = -1;
 }
 
 MultiGraph::MultiGraph(const MultiGraph& _g)
 {
 	n = _g.n;
+	nh = _g.nh;
 	for (int i = 0; i < n; i++)
 	{
 		undirected.push_back(_g.undirected[i]);
@@ -15,8 +17,9 @@ MultiGraph::MultiGraph(const MultiGraph& _g)
 	}
 }
 
-MultiGraph::MultiGraph(vector<map<int, int>> _undirected)
+MultiGraph::MultiGraph(vector<map<int, int>> _undirected, int _nh)
 {
+	nh = _nh;
 	n = _undirected.size();
 	for (int i = 0; i < n; i++)
 	{
@@ -295,7 +298,7 @@ vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 	return capacities;
 }
 // This function represent Algorithm 1 in the paper
-void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _undirected, vector<map<int, int>>& _directed)
+void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _undirected, vector<map<int, int>>& _directed,int* _nh)
 {
 	vector<vector<int>> SCC = GetStronglyConnectedComponents();
 	_vertices = RemoveAllOneDegreeVertices(SCC);
@@ -326,6 +329,7 @@ void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacitie
 			capacities.push_back(0);
 		}
 	}
+	*_nh = NewIndices[nh];
 	_undirected.clear(); _directed.clear();
 	for (int i = 0; i < _vertices.size(); i++)
 	{

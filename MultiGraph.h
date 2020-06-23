@@ -11,6 +11,7 @@ using namespace std;
 class MultiGraph
 {
 	int n;
+	int nh;
 	vector<map<int, int>> undirected;
 	vector<map<int, int>> directed;
 	vector<int> GetDegree(const vector<int>& vertices, const vector<bool>& considered);
@@ -20,8 +21,8 @@ class MultiGraph
 public:
 	MultiGraph();
 	MultiGraph(const MultiGraph& _g);
-	MultiGraph(vector<map<int, int>> _undirected);
+	MultiGraph(vector<map<int, int>> _undirected, int _nh);
 	bool AddVehicules(vector<map<int, int>> _directed, bool clear = true);
-	void Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _undirected, vector<map<int, int>>& _directed);
+	void Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _undirected, vector<map<int, int>>& _directed,int*_nh);
 };
 
