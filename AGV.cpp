@@ -9,9 +9,8 @@ AGV::AGV(string fileName)
 	file >> numberOfVertices >> numberOfEdges >> numberOfVehicules >> nh;
 	for (int i = 0; i < numberOfVertices; i++)
 	{
-		map<int, int> to_count;
-		guidePath.push_back(to_count);
-		A.push_back(to_count);
+		guidePath.push_back(map<int, int>());
+		A.push_back(map<int, int>());
 	}
 
 	for (int i = 0; i < numberOfEdges; i++)
@@ -59,6 +58,9 @@ bool AGV::IsLive()
 	{
 		CondensedMultiGraph C = STACK.top();
 		STACK.pop();
+		if (C.isSingleChained())
+			return true;
+		DirectedAcyclicMultiGraph G = DirectedAcyclicMultiGraph(&C);
 	}
 	return false;
 }

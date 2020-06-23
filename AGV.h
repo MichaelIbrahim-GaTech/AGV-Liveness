@@ -7,6 +7,7 @@
 #include <string>
 #include "MultiGraph.h"
 #include "CondensedMultiGraph.h"
+#include "DirectedAcyclicMultiGraph.h"
 using namespace std;
 class AGV
 {

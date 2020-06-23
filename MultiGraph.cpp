@@ -10,23 +10,22 @@ MultiGraph::MultiGraph(const MultiGraph& _g)
 	n = _g.n;
 	for (int i = 0; i < n; i++)
 	{
-		directed.push_back(_g.directed[i]);
 		undirected.push_back(_g.undirected[i]);
+		directed.push_back(_g.directed[i]);
 	}
 }
 
-MultiGraph::MultiGraph(vector<map<int, int>> _directed)
+MultiGraph::MultiGraph(vector<map<int, int>> _undirected)
 {
-	n = _directed.size();
+	n = _undirected.size();
 	for (int i = 0; i < n; i++)
 	{
-		map<int, int> to_count;
-		directed.push_back(to_count);
-		undirected.push_back(to_count);
+		undirected.push_back(map<int, int>());
+		directed.push_back(map<int, int>());
 	}
 	for (int i = 0; i < n; i++)
 	{
-		for (map<int, int>::iterator itr = _directed[i].begin(); itr != _directed[i].end(); itr++)
+		for (map<int, int>::iterator itr = _undirected[i].begin(); itr != _undirected[i].end(); itr++)
 		{
 			int from = i, to = itr->first, count = itr->second;
 			if (from > to)
@@ -35,71 +34,6 @@ MultiGraph::MultiGraph(vector<map<int, int>> _directed)
 				from = to; 
 				to = temp;
 			}
-			if (directed[from].find(to) == directed[from].end())
-			{
-				directed[from].insert(pair<int, int>(to, count));
-			}
-			else
-			{
-				directed[from][to] += count;
-			}
-		}
-	}
-}
-
-bool MultiGraph::AddVehicules(vector<map<int, int>> _undirected, bool clear )
-{
-	if (_undirected.size() != n)
-		return false;
-	if (clear)
-	{
-		undirected.clear();
-		for (int i = 0; i < n; i++)
-		{
-			map<int, int> to_count;
-			undirected.push_back(to_count);
-		}
-	}
-
-	for (int i = 0; i < n; i++)
-	{
-		for (map<int, int>::iterator itr = _undirected[i].begin(); itr != _undirected[i].end(); itr++)
-		{
-			int from = i, to = itr->first, count = itr->second;
-			if (from < to)
-			{
-				if (directed[from].find(to) == directed[from].end())
-				{
-					return false;
-				}
-				else
-				{
-					int cnt = directed[from][to];
-					if (cnt < count)
-						return false;
-					else if (cnt == count)
-						directed[from].erase(to);
-					else
-						directed[from][to] -= count;
-				}
-			}
-			else
-			{
-				if (directed[to].find(from) == directed[to].end())
-				{
-					return false;
-				}
-				else
-				{
-					int cnt = directed[to][from];
-					if (cnt < count)
-						return false;
-					else if (cnt == count)
-						directed[to].erase(from);
-					else
-						directed[to][from] -= count;
-				}
-			}
 			if (undirected[from].find(to) == undirected[from].end())
 			{
 				undirected[from].insert(pair<int, int>(to, count));
@@ -107,6 +41,70 @@ bool MultiGraph::AddVehicules(vector<map<int, int>> _undirected, bool clear )
 			else
 			{
 				undirected[from][to] += count;
+			}
+		}
+	}
+}
+
+bool MultiGraph::AddVehicules(vector<map<int, int>> _directed, bool clear )
+{
+	if (_directed.size() != n)
+		return false;
+	if (clear)
+	{
+		directed.clear();
+		for (int i = 0; i < n; i++)
+		{
+			directed.push_back(map<int, int>());
+		}
+	}
+
+	for (int i = 0; i < n; i++)
+	{
+		for (map<int, int>::iterator itr = _directed[i].begin(); itr != _directed[i].end(); itr++)
+		{
+			int from = i, to = itr->first, count = itr->second;
+			if (from < to)
+			{
+				if (undirected[from].find(to) == undirected[from].end())
+				{
+					return false;
+				}
+				else
+				{
+					int cnt = undirected[from][to];
+					if (cnt < count)
+						return false;
+					else if (cnt == count)
+						undirected[from].erase(to);
+					else
+						undirected[from][to] -= count;
+				}
+			}
+			else
+			{
+				if (undirected[to].find(from) == undirected[to].end())
+				{
+					return false;
+				}
+				else
+				{
+					int cnt = undirected[to][from];
+					if (cnt < count)
+						return false;
+					else if (cnt == count)
+						undirected[to].erase(from);
+					else
+						undirected[to][from] -= count;
+				}
+			}
+			if (directed[from].find(to) == directed[from].end())
+			{
+				directed[from].insert(pair<int, int>(to, count));
+			}
+			else
+			{
+				directed[from][to] += count;
 			}
 		}
 	}
@@ -124,11 +122,11 @@ vector<vector<int>> MultiGraph::GetStronglyConnectedComponents()
 	}
 	for (int i = 0; i < n; i++)
 	{
-		for (map<int, int>::iterator itr = undirected[i].begin(); itr != undirected[i].end(); itr++)
+		for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
 		{
 			D[i].insert(itr->first);
 		}
-		for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+		for (map<int, int>::iterator itr = undirected[i].begin(); itr != undirected[i].end(); itr++)
 		{
 			D[i].insert(itr->first);
 			D[itr->first].insert(i);
@@ -158,20 +156,20 @@ vector<int> MultiGraph::GetDegree(const vector<int>& vertices, const vector<bool
 						from = to;
 						to = temp;
 					}
-					if (undirected[from].find(to) != undirected[from].end())
-					{
-						degree[i] += undirected[from][to];
-						degree[j] += undirected[from][to];
-					}
-					if (undirected[to].find(from) != undirected[to].end())
-					{
-						degree[i] += undirected[to][from];
-						degree[j] += undirected[to][from];
-					}
 					if (directed[from].find(to) != directed[from].end())
 					{
 						degree[i] += directed[from][to];
 						degree[j] += directed[from][to];
+					}
+					if (directed[to].find(from) != directed[to].end())
+					{
+						degree[i] += directed[to][from];
+						degree[j] += directed[to][from];
+					}
+					if (undirected[from].find(to) != undirected[from].end())
+					{
+						degree[i] += undirected[from][to];
+						degree[j] += undirected[from][to];
 					}
 				}
 			}
@@ -236,22 +234,22 @@ vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 		{
 			for (int k = j + 1; k < _ds[i].size(); k++)
 			{
-				map<int, int>::iterator it = undirected[_ds[i][j]].find(_ds[i][k]);
-				if (it != undirected[_ds[i][j]].end())
+				map<int, int>::iterator it = directed[_ds[i][j]].find(_ds[i][k]);
+				if (it != directed[_ds[i][j]].end())
 				{
 					edges[j].insert(k);
 					edges[k].insert(j);
 				}
-				it = undirected[_ds[i][k]].find(_ds[i][j]);
-				if (it != undirected[_ds[i][k]].end())
+				it = directed[_ds[i][k]].find(_ds[i][j]);
+				if (it != directed[_ds[i][k]].end())
 				{
 					edges[k].insert(j);
 					edges[j].insert(k);
 				}
 				if (_ds[i][j] < _ds[i][k])
 				{
-					it = directed[_ds[i][j]].find(_ds[i][k]);
-					if (it != directed[_ds[i][j]].end())
+					it = undirected[_ds[i][j]].find(_ds[i][k]);
+					if (it != undirected[_ds[i][j]].end())
 					{
 						edges[j].insert(k);
 						edges[k].insert(j);
@@ -260,8 +258,8 @@ vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 				}
 				else
 				{
-					it = directed[_ds[i][k]].find(_ds[i][j]);
-					if (it != directed[_ds[i][k]].end())
+					it = undirected[_ds[i][k]].find(_ds[i][j]);
+					if (it != undirected[_ds[i][k]].end())
 					{
 						edges[k].insert(j);
 						edges[j].insert(k);
@@ -274,10 +272,10 @@ vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 		for (int j = 0; j < bridges.size(); j++)
 		{
 			// we substract an edge if it was free
-			if (undirected[_ds[i][bridges[j].first]].find(_ds[i][bridges[j].second]) == undirected[_ds[i][bridges[j].first]].end())
+			if (directed[_ds[i][bridges[j].first]].find(_ds[i][bridges[j].second]) == directed[_ds[i][bridges[j].first]].end())
 			{
 				// we substract an edge if it was free
-				if (undirected[_ds[i][bridges[j].second]].find(_ds[i][bridges[j].first]) == undirected[_ds[i][bridges[j].second]].end())
+				if (directed[_ds[i][bridges[j].second]].find(_ds[i][bridges[j].first]) == directed[_ds[i][bridges[j].second]].end())
 				{
 					int from = _ds[i][bridges[j].first], to = _ds[i][bridges[j].second];
 					if (from > to)
@@ -287,7 +285,7 @@ vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 						to = temp;
 					}
 					// remove a bridge from capacity if it is a single edge no a multi-edge
-					if (directed[from].find(to)->second <= 1)
+					if (undirected[from].find(to)->second <= 1)
 						capacity--;
 				}
 			}
@@ -297,7 +295,7 @@ vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 	return capacities;
 }
 // This function represent Algorithm 1 in the paper
-void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _directed, vector<map<int, int>>& _undirected)
+void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _undirected, vector<map<int, int>>& _directed)
 {
 	vector<vector<int>> SCC = GetStronglyConnectedComponents();
 	_vertices = RemoveAllOneDegreeVertices(SCC);
@@ -328,26 +326,26 @@ void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacitie
 			capacities.push_back(0);
 		}
 	}
-	_directed.clear(); _undirected.clear();
+	_undirected.clear(); _directed.clear();
 	for (int i = 0; i < _vertices.size(); i++)
 	{
-		_directed.push_back(map<int, int>());
 		_undirected.push_back(map<int, int>());
+		_directed.push_back(map<int, int>());
 	}
 
 	for (int i = 0; i < n; i++)
 	{
-		for (map<int, int>::iterator itr = undirected[i].begin(); itr != undirected[i].end(); itr++)
+		for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
 		{
 			if (NewIndices[i] != NewIndices[itr->first])
 			{
-				if (_undirected[NewIndices[i]].find(NewIndices[itr->first]) == _undirected[NewIndices[i]].end())
-					_undirected[NewIndices[i]].insert(pair<int, int>(NewIndices[itr->first], itr->second));
+				if (_directed[NewIndices[i]].find(NewIndices[itr->first]) == _directed[NewIndices[i]].end())
+					_directed[NewIndices[i]].insert(pair<int, int>(NewIndices[itr->first], itr->second));
 				else
-					_undirected[NewIndices[i]][NewIndices[itr->first]] += itr->second;
+					_directed[NewIndices[i]][NewIndices[itr->first]] += itr->second;
 			}
 		}
-		for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+		for (map<int, int>::iterator itr = undirected[i].begin(); itr != undirected[i].end(); itr++)
 		{
 			if (NewIndices[i] != NewIndices[itr->first])
 			{
@@ -358,10 +356,10 @@ void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacitie
 					_from = _to;
 					_to = temp;
 				}
-				if (_directed[_from].find(_to) == _directed[_from].end())
-					_directed[_from].insert(pair<int, int>(_to, itr->second));
+				if (_undirected[_from].find(_to) == _undirected[_from].end())
+					_undirected[_from].insert(pair<int, int>(_to, itr->second));
 				else
-					_directed[_from][_to] += itr->second;
+					_undirected[_from][_to] += itr->second;
 			}
 		}
 	}
