@@ -2,7 +2,6 @@
 #include "MultiGraph.h"
 #include "CondensedMultiGraph.h"
 
-#define INFINITY 1000000
 
 class DirectedAcyclicMultiGraph
 {
@@ -23,6 +22,8 @@ public:
 	DirectedAcyclicMultiGraph(const DirectedAcyclicMultiGraph&);
 	DirectedAcyclicMultiGraph(CondensedMultiGraph* _C);
 	bool TerminalNodesCapacityLessThanAllInEdges();
-	void Algorithm2();
+	bool ExistAPathLeadingToNH(CondensedMultiGraph* _C);
+	bool ExistAProducerMerger(CondensedMultiGraph* _C);
+	vector<CondensedMultiGraph> PickATerminalNodeAndCollapseFeasiblePaths();
 };
 

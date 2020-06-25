@@ -115,7 +115,29 @@ vector<int> DirectedAcyclicMultiGraph::TopologicalOrder()
 	return Graph::topologicalSort(D);
 }
 
-void DirectedAcyclicMultiGraph::Algorithm2()
+bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
+{
+	if (reversedEdges[nh].size() > 0)
+	{
+		*_C = *C;
+		// performe a merger here
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+// This function implements Algorithm 2 of the paper
+bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 {
 	vector<int> order = TopologicalOrder();
+	return false;
+}
+
+
+vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndCollapseFeasiblePaths()
+{
+	return vector<CondensedMultiGraph>();
 }

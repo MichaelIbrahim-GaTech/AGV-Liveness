@@ -65,13 +65,24 @@ bool AGV::IsLive()
 		if (C.isSingleChained())
 			return true;
 		DirectedAcyclicMultiGraph G = DirectedAcyclicMultiGraph(&C);
+		CondensedMultiGraph Cd;
 		if (G.TerminalNodesCapacityLessThanAllInEdges())
 		{
 			// Do Nothing
 		}
+		else if (G.ExistAPathLeadingToNH(&Cd))
+		{
+			STACK.push(Cd);
+		}
+		else if (G.ExistAProducerMerger(&Cd))
+		{
+			STACK.push(Cd);
+		}
 		else
 		{
-			G.Algorithm2();
+			vector<CondensedMultiGraph> Cds = G.PickATerminalNodeAndCollapseFeasiblePaths();
+			for (vector<CondensedMultiGraph>::iterator itr = Cds.begin(); itr != Cds.end(); itr++)
+				STACK.push(*itr);
 		}
 	}
 	return false;

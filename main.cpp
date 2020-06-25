@@ -6,7 +6,7 @@
 using namespace std;
 int main()
 {
-	string file = "AGV0.txt";
+	string file = "AGV1.txt";
 	AGV g(file);
 	if (g.IsLive())
 		cout << file << " is live" << endl;

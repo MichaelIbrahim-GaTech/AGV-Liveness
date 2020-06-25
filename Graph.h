@@ -7,6 +7,7 @@
 #include <math.h>
 using namespace std;
 #define NIL -1
+#define INFINITY 10000000
 class Graph
 {
 	static vector<set<int>> getTranspose(const vector<set<int>>& _d);
