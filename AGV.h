@@ -5,6 +5,7 @@
 #include <map>
 #include <stack>
 #include <string>
+#include <queue>
 #include "MultiGraph.h"
 #include "CondensedMultiGraph.h"
 #include "DirectedAcyclicMultiGraph.h"

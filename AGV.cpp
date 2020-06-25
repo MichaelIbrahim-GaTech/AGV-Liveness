@@ -51,8 +51,12 @@ AGV::AGV(string fileName)
 bool AGV::IsLive()
 {
 	CondensedMultiGraph C_Ghat(&Ghat);
+
+	priority_queue<CondensedMultiGraph, vector<CondensedMultiGraph>, less<vector<CondensedMultiGraph>::value_type>> pqueue;
+	pqueue.push(C_Ghat);
 	stack<CondensedMultiGraph> STACK;
 	STACK.push(C_Ghat);
+	
 	// Implement Algorithm 3 here.
 	while (!STACK.empty())
 	{
@@ -61,7 +65,14 @@ bool AGV::IsLive()
 		if (C.isSingleChained())
 			return true;
 		DirectedAcyclicMultiGraph G = DirectedAcyclicMultiGraph(&C);
-		G.Algorithm2();
+		if (G.TerminalNodesCapacityLessThanAllInEdges())
+		{
+			// Do Nothing
+		}
+		else
+		{
+			G.Algorithm2();
+		}
 	}
 	return false;
 }

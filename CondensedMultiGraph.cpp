@@ -1,5 +1,15 @@
 #include "CondensedMultiGraph.h"
 
+bool operator < (const CondensedMultiGraph& lhs, const CondensedMultiGraph& rhs)
+{
+	return lhs.vertices.size() < rhs.vertices.size();
+}
+
+bool operator > (const CondensedMultiGraph& lhs, const CondensedMultiGraph& rhs)
+{
+	return lhs.vertices.size() > rhs.vertices.size();
+}
+
 CondensedMultiGraph::CondensedMultiGraph(const CondensedMultiGraph& _g)
 {
 	Ghat = _g.Ghat;

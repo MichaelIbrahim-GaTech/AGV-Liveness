@@ -11,6 +11,7 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(const DirectedAcyclicMultiG
 		directed.push_back(_g.directed[i]);
 		major.push_back(_g.major[i]);
 		reversedEdges.push_back(reversedEdges[i]);
+		collapsedNodes.push_back(collapsedNodes[i]);
 	}
 }
 
@@ -22,6 +23,7 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 	{
 		major.push_back(false);
 		reversedEdges.push_back(map<int, int>());
+		collapsedNodes.push_back(map<int, vector<int>>());
 	}
 	for (int i = 0; i < directed.size(); i++)
 	{
@@ -30,6 +32,8 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 			reversedEdges[itr->first].insert(pair<int, int>(i, itr->second));
 		}
 	}
+	major[nh] = true;
+	capacities[nh] = INFINITY;
 	for (int i = 0; i < nodes.size(); i++)
 	{
 		if (capacities[i] > 0)
@@ -38,11 +42,7 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 		}
 		else
 		{
-			int OutDegree = 0;
-			for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
-			{
-				OutDegree += itr->second;
-			}
+			int OutDegree = directed[i].size();
 			if (OutDegree >= 2)
 			{
 				major[i] = true;
@@ -50,11 +50,7 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 			else
 			{
 
-				int InDegree = 0;
-				for (map<int, int>::iterator itr = reversedEdges[i].begin(); itr != reversedEdges[i].end(); itr++)
-				{
-					InDegree += itr->second;
-				}
+				int InDegree = reversedEdges[i].size();
 				if (InDegree >= 2)
 				{
 					major[i] = true;
@@ -62,15 +58,46 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 			}
 		}
 	}
+	CollapseNonMajorNodesPaths();
 }
 
-set<int> DirectedAcyclicMultiGraph::TerminalNodes()
+void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
+{ 
+	for (int i = nodes.size() - 1; i >= 0; i--)
+	{
+		if (!major[i])
+		{
+			if ((reversedEdges[i].size() == 1) && (directed[i].size() == 1))
+			{
+				// put the necessary code to collapse this node
+			}
+		}
+	}
+}
+
+bool DirectedAcyclicMultiGraph::TerminalNodesCapacityLessThanAllInEdges()
 {
-
-	return set<int>();
+	for (int i = 0; i < nodes.size(); i++)
+	{
+		if (directed[i].size() == 0)//this is a terminal node
+		{
+			bool AllLess = true;
+			for (map<int, int>::iterator itr = reversedEdges[i].begin(); itr != reversedEdges[i].end(); itr++)
+			{
+				if (itr->second <= capacities[i])
+				{
+					AllLess = false;
+					break;
+				}
+			}
+			if (AllLess)
+				return true;
+		}
+	}
+	return false;
 }
 
-void DirectedAcyclicMultiGraph::Algorithm2()
+vector<int> DirectedAcyclicMultiGraph::TopologicalOrder()
 {
 	int n = nodes.size();
 	vector<set<int>> D;
@@ -85,5 +112,10 @@ void DirectedAcyclicMultiGraph::Algorithm2()
 			D[i].insert(itr->first);
 		}
 	}
-	vector<int> order = Graph::topologicalSort(D);
+	return Graph::topologicalSort(D);
+}
+
+void DirectedAcyclicMultiGraph::Algorithm2()
+{
+	vector<int> order = TopologicalOrder();
 }
