@@ -16,5 +16,6 @@ public:
 	DirectedAcyclicMultiGraph(const DirectedAcyclicMultiGraph&);
 	DirectedAcyclicMultiGraph(CondensedMultiGraph* _C);
 	set<int> TerminalNodes();
+	void Algorithm2();
 };
 

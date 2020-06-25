@@ -1,6 +1,6 @@
 #include "Graph.h"
 
-vector<set<int>> Graph::getTranspose(vector<set<int>> _d)
+vector<set<int>> Graph::getTranspose(const vector<set<int>>& _d)
 {
 	vector<set<int>> d;
 	for (int i = 0; i < _d.size(); i++)
@@ -48,7 +48,7 @@ void Graph::fillOrder(int v, bool visited[], stack<int>& Stack, const vector<set
 	Stack.push(v);
 }
 
-vector<vector<int>> Graph::GetStronglyConnectedComponents(vector<set<int>> _d)
+vector<vector<int>> Graph::GetStronglyConnectedComponents(const vector<set<int>>& _d)
 {
 	vector<vector<int>> result;
 	int n = _d.size();
@@ -143,7 +143,7 @@ vector<pair<int, int>> Graph::bridgeUtil(int*time, int u, bool visited[], int di
 
 // DFS based function to find all bridges. It uses recursive  
 // function bridgeUtil() 
-vector<pair<int,int>> Graph::bridge(vector<set<int>> _d)
+vector<pair<int,int>> Graph::bridge(const vector<set<int>>& _d)
 {
 	vector<pair<int, int>> bridges;
 	int n = _d.size();
@@ -173,4 +173,53 @@ vector<pair<int,int>> Graph::bridge(vector<set<int>> _d)
 		}
 
 	return bridges;
+}
+
+// A recursive function used by topologicalSort 
+void Graph::topologicalSortUtil(int v, bool visited[], stack<int>& Stack, const vector<set<int>>& _d)
+{
+	// Mark the current node as visited. 
+	visited[v] = true;
+
+	// Recur for all the vertices  
+// adjacent to this vertex 
+	for (set<int>::iterator i = _d[v].begin(); i != _d[v].end(); ++i)
+		if (!visited[*i])
+			topologicalSortUtil(*i, visited, Stack, _d);
+
+	// Push current vertex to stack  
+// which stores result 
+	Stack.push(v);
+}
+
+// The function to do Topological Sort. 
+// It uses recursive topologicalSortUtil() 
+vector<int> Graph::topologicalSort(const vector<set<int>>& _d)
+{
+	int n = _d.size();
+	stack<int> Stack;
+
+	// Mark all the vertices as not visited 
+	bool* visited = new bool[n];
+	for (int i = 0; i < n; i++)
+		visited[i] = false;
+
+	// Call the recursive helper function 
+// to store Topological 
+	// Sort starting from all  
+// vertices one by one 
+	for (int i = 0; i < n; i++)
+		if (visited[i] == false)
+			topologicalSortUtil(i, visited, Stack, _d);
+
+	// Print contents of stack 
+	vector<int> order;
+	while (Stack.empty() == false)
+	{
+		//cout << Stack.top() << " ";
+		order.push_back(Stack.top());
+		Stack.pop();
+	}
+
+	return order;
 }

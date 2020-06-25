@@ -61,6 +61,7 @@ bool AGV::IsLive()
 		if (C.isSingleChained())
 			return true;
 		DirectedAcyclicMultiGraph G = DirectedAcyclicMultiGraph(&C);
+		G.Algorithm2();
 	}
 	return false;
 }

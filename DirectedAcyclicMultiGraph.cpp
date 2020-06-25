@@ -69,3 +69,21 @@ set<int> DirectedAcyclicMultiGraph::TerminalNodes()
 
 	return set<int>();
 }
+
+void DirectedAcyclicMultiGraph::Algorithm2()
+{
+	int n = nodes.size();
+	vector<set<int>> D;
+	for (int i = 0; i < n; i++)
+	{
+		D.push_back(set<int>());
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+		{
+			D[i].insert(itr->first);
+		}
+	}
+	vector<int> order = Graph::topologicalSort(D);
+}

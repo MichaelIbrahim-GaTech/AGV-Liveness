@@ -86,5 +86,5 @@ void CondensedMultiGraph::CondenseDirected(vector<vector<int>>& _nodes, vector<i
 
 bool CondensedMultiGraph::isSingleChained()
 {
-	return false;
+	return (vertices.size() == 1);
 }
