@@ -121,6 +121,15 @@ bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 	{
 		*_C = *C;
 		// performe a merger here
+		vector<int> MergedVertices(nodes[nh]);
+		for (map<int, int>::iterator itr = reversedEdges[nh].begin(); itr != reversedEdges[nh].end(); itr++)
+		{
+			for (int i = 0; i < nodes[itr->first].size(); i++)
+			{
+				MergedVertices.push_back(nodes[itr->first][i]);
+			}
+		}
+		_C->MacroMerger(MergedVertices, INFINITY);
 		return true;
 	}
 	else
