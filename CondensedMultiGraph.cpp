@@ -178,7 +178,7 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 		directed[itr->first].clear();
 		undirected[itr->first].clear();
 	}
-	for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
+	for (int i = 1; i < _mergedVertices.size(); i++)
 	{
 		vertices.pop_back();
 		directed.pop_back();
@@ -203,5 +203,4 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 			}
 		}
 	}
-	// Need to complete the merge
 }

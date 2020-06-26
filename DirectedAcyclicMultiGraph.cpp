@@ -58,7 +58,7 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 			}
 		}
 	}
-	CollapseNonMajorNodesPaths();
+	//CollapseNonMajorNodesPaths();
 }
 
 void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
@@ -120,13 +120,30 @@ bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 	if (reversedEdges[nh].size() > 0)
 	{
 		*_C = *C;
-		// performe a merger here
-		vector<int> MergedVertices(nodes[nh]);
-		for (map<int, int>::iterator itr = reversedEdges[nh].begin(); itr != reversedEdges[nh].end(); itr++)
+		stack<int> Explore;
+		Explore.push(nh);
+		set<int> MergedNodes;
+		while (!Explore.empty())
 		{
-			for (int i = 0; i < nodes[itr->first].size(); i++)
+			int Current = Explore.top();
+			Explore.pop();
+			if (MergedNodes.find(Current) == MergedNodes.end())
 			{
-				MergedVertices.push_back(nodes[itr->first][i]);
+				MergedNodes.insert(Current);
+				for (map<int, int>::iterator itr = reversedEdges[Current].begin(); itr != reversedEdges[Current].end(); itr++)
+				{
+					if (MergedNodes.find(itr->first) == MergedNodes.end())
+						Explore.push(itr->first);
+				}
+			}
+		}
+		// performe a merger here
+		vector<int> MergedVertices;
+		for (set<int>::iterator itr = MergedNodes.begin(); itr != MergedNodes.end(); itr++)
+		{
+			for (int i = 0; i < nodes[*itr].size(); i++)
+			{
+				MergedVertices.push_back(nodes[*itr][i]);
 			}
 		}
 		_C->MacroMerger(MergedVertices, INFINITY);
@@ -148,5 +165,28 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 
 vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndCollapseFeasiblePaths()
 {
-	return vector<CondensedMultiGraph>();
+	int Terminal = 0;
+	for (; Terminal < nodes.size(); Terminal++)
+	{
+		if (directed[Terminal].size() == 0)//this is a terminal node
+			break;
+	}
+	// No Terminal Nodes (possibly something went wrong) in some place
+	if(Terminal == nodes.size()) 
+		return vector<CondensedMultiGraph>();
+	vector<CondensedMultiGraph> result;
+	for (map<int, int>::iterator itr = reversedEdges[Terminal].begin(); itr != reversedEdges[Terminal].end(); itr++)
+	{
+		if (itr->second <= capacities[Terminal])
+		{
+			vector<int> MergedVertices(nodes[Terminal]);
+			for (int i = 0; i < nodes[itr->first].size(); i++)
+				MergedVertices.push_back(nodes[itr->first][i]);
+			int capacity = capacities[Terminal] + capacities[itr->first] - itr->second;
+			CondensedMultiGraph _C = *C;
+			_C.MacroMerger(MergedVertices, capacity);
+			result.push_back(_C);
+		}
+	}
+	return result;
 }
