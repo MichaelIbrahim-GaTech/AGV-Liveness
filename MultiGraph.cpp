@@ -298,7 +298,7 @@ vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 	return capacities;
 }
 // This function represent Algorithm 1 in the paper
-void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _undirected, vector<map<int, int>>& _directed,int* _nh)
+void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _undirected, vector<multimap<int, int>>& _directed,int* _nh)
 {
 	vector<vector<int>> SCC = GetStronglyConnectedComponents();
 	_vertices = RemoveAllOneDegreeVertices(SCC);
@@ -334,7 +334,7 @@ void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacitie
 	for (int i = 0; i < _vertices.size(); i++)
 	{
 		_undirected.push_back(map<int, int>());
-		_directed.push_back(map<int, int>());
+		_directed.push_back(multimap<int, int>());
 	}
 
 	for (int i = 0; i < n; i++)
@@ -343,10 +343,7 @@ void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacitie
 		{
 			if (NewIndices[i] != NewIndices[itr->first])
 			{
-				if (_directed[NewIndices[i]].find(NewIndices[itr->first]) == _directed[NewIndices[i]].end())
-					_directed[NewIndices[i]].insert(pair<int, int>(NewIndices[itr->first], itr->second));
-				else
-					_directed[NewIndices[i]][NewIndices[itr->first]] += itr->second;
+				_directed[NewIndices[i]].insert(pair<int, int>(NewIndices[itr->first], itr->second));
 			}
 		}
 		for (map<int, int>::iterator itr = undirected[i].begin(); itr != undirected[i].end(); itr++)

@@ -49,7 +49,7 @@ vector<vector<int>> CondensedMultiGraph::GetStronglyConnectedComponents()
 	return Graph::GetStronglyConnectedComponents(D);
 }
 
-void CondensedMultiGraph::CondenseDirected(vector<vector<int>>& _nodes, vector<int>& _capacities, vector<map<int, int>>& _directed, int* _nh)
+void CondensedMultiGraph::CondenseDirected(vector<vector<int>>& _nodes, vector<int>& _capacities, vector<multimap<int, int>>& _directed, int* _nh)
 {
 	_nodes = GetStronglyConnectedComponents();
 	for (int i = 0; i < _nodes.size(); i++)
@@ -77,7 +77,7 @@ void CondensedMultiGraph::CondenseDirected(vector<vector<int>>& _nodes, vector<i
 	_directed.clear();
 	for (int i = 0; i < _nodes.size(); i++)
 	{
-		_directed.push_back(map<int, int>());
+		_directed.push_back(multimap<int, int>());
 	}
 	for (int i = 0; i < directed.size(); i++)
 	{
@@ -85,10 +85,8 @@ void CondensedMultiGraph::CondenseDirected(vector<vector<int>>& _nodes, vector<i
 		{
 			if (NewIndices[i] != NewIndices[itr->first])
 			{
-				if (_directed[NewIndices[i]].find(NewIndices[itr->first]) == _directed[NewIndices[i]].end())
-					_directed[NewIndices[i]].insert(pair<int, int>(NewIndices[itr->first], itr->second));
-				else
-					_directed[NewIndices[i]][NewIndices[itr->first]] += itr->second;
+				//since it is a multi-map, you keep adding
+				_directed[NewIndices[i]].insert(pair<int, int>(NewIndices[itr->first], itr->second));
 			}
 		}
 	}
@@ -120,10 +118,7 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 			vertices[NewVertex].push_back(vertices[_mergedVertices[i]][j]);
 		for (map<int, int>::iterator itr = directed[_mergedVertices[i]].begin(); itr != directed[_mergedVertices[i]].end(); itr++)
 		{
-			if (directed[NewVertex].find(itr->first) == directed[NewVertex].end())
-				directed[NewVertex].insert(*itr);
-			else
-				directed[NewVertex][itr->first] += itr->second;
+			directed[NewVertex].insert(*itr);
 		}
 		for (map<int, int>::iterator itr = undirected[_mergedVertices[i]].begin(); itr != undirected[_mergedVertices[i]].end(); itr++)
 		{

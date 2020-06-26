@@ -9,9 +9,9 @@ class DirectedAcyclicMultiGraph
 	int nh;
 	vector<vector<int>> nodes;
 	vector<int> capacities;
-	vector<map<int, int>> directed;
+	vector<multimap<int, int>> directed;
 	vector<bool> major;
-	vector<map<int, int>> reversedEdges;
+	vector<multimap<int, int>> reversedEdges;
 	vector<map<int, vector<int>>> collapsedNodes;//from-to, vector of collapsed vertices
 	//Get the topological order of the nodes of the DAG
 	vector<int> TopologicalOrder();

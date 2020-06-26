@@ -22,12 +22,12 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 	for (int i = 0; i < nodes.size(); i++)
 	{
 		major.push_back(false);
-		reversedEdges.push_back(map<int, int>());
+		reversedEdges.push_back(multimap<int, int>());
 		collapsedNodes.push_back(map<int, vector<int>>());
 	}
 	for (int i = 0; i < directed.size(); i++)
 	{
-		for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+		for (multimap<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
 		{
 			reversedEdges[itr->first].insert(pair<int, int>(i, itr->second));
 		}
@@ -82,7 +82,7 @@ bool DirectedAcyclicMultiGraph::TerminalNodesCapacityLessThanAllInEdges()
 		if (directed[i].size() == 0)//this is a terminal node
 		{
 			bool AllLess = true;
-			for (map<int, int>::iterator itr = reversedEdges[i].begin(); itr != reversedEdges[i].end(); itr++)
+			for (multimap<int, int>::iterator itr = reversedEdges[i].begin(); itr != reversedEdges[i].end(); itr++)
 			{
 				if (itr->second <= capacities[i])
 				{
@@ -107,7 +107,7 @@ vector<int> DirectedAcyclicMultiGraph::TopologicalOrder()
 	}
 	for (int i = 0; i < n; i++)
 	{
-		for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+		for (multimap<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
 		{
 			D[i].insert(itr->first);
 		}
@@ -130,7 +130,7 @@ bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 			if (MergedNodes.find(Current) == MergedNodes.end())
 			{
 				MergedNodes.insert(Current);
-				for (map<int, int>::iterator itr = reversedEdges[Current].begin(); itr != reversedEdges[Current].end(); itr++)
+				for (multimap<int, int>::iterator itr = reversedEdges[Current].begin(); itr != reversedEdges[Current].end(); itr++)
 				{
 					if (MergedNodes.find(itr->first) == MergedNodes.end())
 						Explore.push(itr->first);
@@ -175,7 +175,7 @@ vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndColla
 	if(Terminal == nodes.size()) 
 		return vector<CondensedMultiGraph>();
 	vector<CondensedMultiGraph> result;
-	for (map<int, int>::iterator itr = reversedEdges[Terminal].begin(); itr != reversedEdges[Terminal].end(); itr++)
+	for (multimap<int, int>::iterator itr = reversedEdges[Terminal].begin(); itr != reversedEdges[Terminal].end(); itr++)
 	{
 		if (itr->second <= capacities[Terminal])
 		{
