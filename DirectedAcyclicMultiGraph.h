@@ -15,6 +15,7 @@ class DirectedAcyclicMultiGraph
 	vector<map<int, vector<int>>> collapsedNodes;//from-to, vector of collapsed vertices
 	//Get the topological order of the nodes of the DAG
 	vector<int> TopologicalOrder();
+	vector<bool> GetSn(vector<int> order, int n);
 	//This function 
 	void CollapseNonMajorNodesPaths();
 public:

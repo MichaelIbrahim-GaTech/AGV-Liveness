@@ -115,6 +115,33 @@ vector<int> DirectedAcyclicMultiGraph::TopologicalOrder()
 	return Graph::topologicalSort(D);
 }
 
+
+vector<bool> DirectedAcyclicMultiGraph::GetSn(vector<int> order, int n)
+{
+	vector<bool> Sn(order.size(), false);
+	map<int, int> Index;
+	for (int i = 0; i < order.size(); i++)
+		Index.insert(pair<int, int>(order[i], i));
+	stack<int> Explore;
+	set<int> Visited;
+	Explore.push(order[n]);
+	while (!Explore.empty())
+	{
+		int current = Explore.top();
+		Explore.pop();
+		if (Visited.find(current) == Visited.end())
+		{
+			Visited.insert(current);
+			Sn[Index[current]] = true;
+			for (map<int, int>::iterator itr = directed[current].begin(); itr != directed[current].end(); itr++)
+				Explore.push(itr->first);
+		}
+	}
+
+
+	return Sn;
+}
+
 bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 {
 	if (reversedEdges[nh].size() > 0)
@@ -159,6 +186,65 @@ bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 {
 	vector<int> order = TopologicalOrder();
+	map<int, int> Index;
+	for (int i = 0; i < order.size(); i++)
+		Index.insert(pair<int, int>(order[i], i));
+	for (int n = 0; n < order.size(); n++)
+	{
+		vector<bool> Sn = GetSn(order, n);
+		vector<int> delta(order.size(), INFINITY);
+		vector<set<int>> LU(order.size(), set<int>());
+		delta[n] = 0; //delta[n]
+		for (int u = n + 1; u < order.size(); u++)
+		{
+			// if u is in Sn
+			if (Sn[u])
+			{
+				// delta[u] = max{0, min{delta[u']+w(u',u) - capacity[u]}}
+				for (map<int, int>::iterator itr = reversedEdges[order[u]].begin(); itr != reversedEdges[order[u]].end(); itr++)
+				{
+					if (Sn[Index[itr->first]])
+					{
+						int rhs = delta[Index[itr->first]] + itr->second - capacities[order[u]];
+						if (rhs < delta[u])
+						{
+							delta[u] = rhs;
+							LU[u].clear();
+							LU[u].insert(itr->first);
+						}
+						else if (rhs == delta[u])
+						{
+							LU[u].insert(itr->first);
+						}
+					}
+				}
+				if (delta[u] < 0)
+					delta[u] = 0;
+
+				if (delta[u] == 0)
+				{
+					int InDegree = 0;
+					set<int> InNodes;
+					for (map<int, int>::iterator itr = reversedEdges[order[u]].begin(); itr != reversedEdges[order[u]].end(); itr++)
+					{
+						if (Sn[Index[itr->first]])
+						{
+							InNodes.insert(itr->first);
+						}
+					}
+					InDegree = InNodes.size();
+					// path based merger
+					if (InDegree == 1)
+					{
+					}
+					// cycle based merger
+					else if (InDegree > 0)
+					{
+					}
+				}
+			}
+		}
+	}
 	return false;
 }
 
