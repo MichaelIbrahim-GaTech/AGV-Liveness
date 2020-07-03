@@ -1,6 +1,7 @@
 #pragma once
 #include "MultiGraph.h"
 #include "CondensedMultiGraph.h"
+#include "ProducerPathBasedMerger.h"
 
 
 class DirectedAcyclicMultiGraph
@@ -16,6 +17,7 @@ class DirectedAcyclicMultiGraph
 	//Get the topological order of the nodes of the DAG
 	vector<int> TopologicalOrder();
 	vector<bool> GetSn(vector<int> order, int n);
+	bool ExistProducerPathBasedMerger(vector<int> _order, vector<bool> Sn, int n, int u, vector<int>& path, int& capacity);
 	//This function 
 	void CollapseNonMajorNodesPaths();
 public:

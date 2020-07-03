@@ -142,6 +142,63 @@ vector<bool> DirectedAcyclicMultiGraph::GetSn(vector<int> order, int n)
 	return Sn;
 }
 
+bool DirectedAcyclicMultiGraph::ExistProducerPathBasedMerger(vector<int> _order, vector<bool> _Sn, int _n, int _u, vector<int>& _path, int& _pathCapacity)
+{
+	int count = 0;
+	map<int, int> NewIndices;
+	vector<int> ReversedIndices;
+	vector<map<int, int>> SubgraphDirected;
+	vector<int> SubgraphCapacities;
+	for (int i = _n; i <= _u; i++)
+	{
+		if (_Sn[i])
+		{
+			NewIndices.insert(pair<int, int>(_order[i], count));
+			ReversedIndices.push_back(_order[i]);
+			count++;
+			SubgraphDirected.push_back(map<int, int>());
+			SubgraphCapacities.push_back(capacities[_order[i]]);
+		}
+	}
+	count = 0;
+	for (int i = _n; i <= _u; i++)
+	{
+		if (_Sn[i])
+		{
+			for (map<int, int>::iterator itr = directed[_order[i]].begin(); itr != directed[_order[i]].end(); itr++)
+			{
+				if (NewIndices.find(itr->first) != NewIndices.end())//Sn[itr->first] = true
+				{
+					if (SubgraphDirected[count].find(NewIndices[itr->first]) == SubgraphDirected[count].end())
+						SubgraphDirected[count].insert(pair<int, int>(NewIndices[itr->first], itr->second));
+					else
+					{
+						int weight = SubgraphDirected[count][NewIndices[itr->first]];
+						if (weight < itr->second)
+							weight = itr->second;
+						SubgraphDirected[count][NewIndices[itr->first]] = weight;
+					}
+				}
+			}
+			count++;
+		}
+	}
+
+	vector<int> Path;
+	ProducerPathBasedMerger PPBM;
+	if (PPBM.Exist(SubgraphDirected, SubgraphCapacities, Path, _pathCapacity))
+	{
+		for (int i = 0; i < Path.size(); i++)
+			_path.push_back(ReversedIndices[Path[i]]);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+
 bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 {
 	if (reversedEdges[nh].size() > 0)
@@ -236,10 +293,31 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 					// path based merger
 					if (InDegree == 1)
 					{
+						vector<int> Path;
+						int capacity = 0;
+						if (ExistProducerPathBasedMerger(order, Sn, n, u, Path, capacity))
+						{
+							set<int> MergedNodes;
+							for (int i = 0; i < Path.size(); i++)
+								MergedNodes.insert(Path[i]);
+							// performe a merger here
+							vector<int> MergedVertices;
+							for (set<int>::iterator itr = MergedNodes.begin(); itr != MergedNodes.end(); itr++)
+							{
+								for (int i = 0; i < nodes[*itr].size(); i++)
+								{
+									MergedVertices.push_back(nodes[*itr][i]);
+								}
+							}
+							*_C = *C;
+							_C->MacroMerger(MergedVertices, capacity);
+							return true;
+						}
 					}
 					// cycle based merger
-					else if (InDegree > 0)
+					else if (InDegree > 1)
 					{
+						vector<int> Path;
 					}
 				}
 			}

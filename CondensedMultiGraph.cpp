@@ -101,6 +101,10 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 {
 	sort(_mergedVertices.begin(), _mergedVertices.end());
 	int NewVertex = _mergedVertices[0];
+	set<int> SetMergedVertices;
+	for (int i = 1; i < _mergedVertices.size(); i++)
+		SetMergedVertices.insert(_mergedVertices[i]);
+	// 1- remove edges between merged vertices
 	for (int i = 0; i < _mergedVertices.size(); i++)
 	{
 		for (int j = 0; j < _mergedVertices.size(); j++)
@@ -112,6 +116,7 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 			}
 		}
 	}
+	//2- Move all edges from merged vertices to the first merged vertex
 	for (int i = 1; i < _mergedVertices.size(); i++)
 	{
 		for (int j = 0; j < vertices[_mergedVertices[i]].size(); j++)
@@ -131,6 +136,21 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 		directed[_mergedVertices[i]].clear();
 		undirected[_mergedVertices[i]].clear();
 	}
+	// 3- modify all edges with the new vertex info
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		multimap<int, int> temp(directed[i]);
+		directed[i].clear();
+		for (map<int, int>::iterator itr = temp.begin(); itr != temp.end(); itr++)
+		{
+			if (SetMergedVertices.find(itr->first) == SetMergedVertices.end())
+				directed[i].insert(*itr);
+			else
+				directed[i].insert(pair<int, int>(NewVertex, itr->second));
+		}
+
+	}
+	// 4- 
 	capacities[NewVertex] = _capacity;
 	vector<int> NewIndices;
 	for (int i = 0; i < vertices.size(); i++)
@@ -154,6 +174,7 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 		}
 		i1++;
 	}
+	// 5- check which vertices will have a different order
 	map<int, int> Order;
 	for (int i = 0; i < NewIndices.size(); i++)
 	{
@@ -180,17 +201,22 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 		undirected.pop_back();
 		capacities.pop_back();
 	}
+	// 6- modify the edges according to the new order
 	for (int i = 0; i < vertices.size(); i++)
 	{
+		//modify the code to be a multigraph
+
 		for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
 		{
-			map<int, int>::iterator itr2 = directed[i].find(itr->first);
-			if (itr2 != directed[i].end())
+			pair<multimap<int,int>::iterator, multimap<int, int>::iterator> result = directed[i].equal_range(itr->first);
+			if (distance(result.first, result.second) > 0)
 			{
+				for (multimap<int, int>::iterator itr2 = result.first; itr2 != result.second; itr2++)
 				directed[i].insert(pair<int, int>(itr->second, itr2->second));
 				directed[i].erase(itr->first);
 			}
-			itr2 = undirected[i].find(itr->first);
+
+			map<int, int>::iterator itr2 = undirected[i].find(itr->first);
 			if (itr2 != undirected[i].end())
 			{
 				undirected[i].insert(pair<int, int>(itr->second, itr2->second));
