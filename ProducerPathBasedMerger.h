@@ -13,6 +13,8 @@ class ProducerPathBasedMerger
 	// Also, it returns a vector of integers "V"
 	// Finally, this algorithm modifies _directed vector.
 	void GetSnu(vector<map<int, int>>& _directed, vector<int>& _capacities, vector<bool>& Snu, vector<int>& V);
+	bool GetPathBasedMerger(vector<map<int, int>>& _directed, vector<int>& _capacities, vector<bool>& Snu, vector<int>& V, vector<int>& _path, int& _pathCapacity);
+	void AddKLToEdge(vector<vector<KLObject>>& EdgeKL, vector<int>& capacities, vector<int>& V, int prevEdge, int currentEdge, int u2, int u3, int currentEdgeWeight);
 public:
 	bool Exist(vector<map<int, int>>& _directed, vector<int>& _capacities, vector<int>& _path, int& _pathCapacity);
 };

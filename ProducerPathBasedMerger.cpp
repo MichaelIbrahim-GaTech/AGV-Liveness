@@ -57,13 +57,34 @@ void ProducerPathBasedMerger::GetSnu(vector<map<int, int>>& _directed, vector<in
 	}
 }
 
-bool ProducerPathBasedMerger::Exist(vector<map<int, int>>& _directed, vector<int>& _capacities, vector<int>& _path, int& _pathCapacity)
+void ProducerPathBasedMerger::AddKLToEdge(vector<vector<KLObject>>& EdgeKL, vector<int>& _capacities, vector<int>& V, int prevEdge, int currentEdge, int u2, int u3, int currentEdgeWeight)
 {
-	// phase 1
-	vector<bool> Snu;
-	vector<int> V(_directed.size(), -1);
-	GetSnu(_directed, _capacities, Snu, V);
-	// phase 2
+	int CUhat = _capacities[_capacities.size() - 1];
+	int Vu2u3 = V[u3] + _capacities[u2] - currentEdgeWeight;
+	for (int i = 0; i < EdgeKL[prevEdge].size(); i++)
+	{
+		int Kp = EdgeKL[prevEdge][i].K - (V[u2] - Vu2u3);
+		int Lp = EdgeKL[prevEdge][i].K - _capacities[u2];
+		if (EdgeKL[prevEdge][i].L < Lp)
+			Lp = EdgeKL[prevEdge][i].L;
+		Lp = Lp - (V[u2] - Vu2u3);
+		if ((Kp >= CUhat) && (Lp >= 0))
+		{
+			KLObject kl;
+			kl.K = Kp;
+			kl.L = Lp;
+			kl.Considered = true;
+			kl.AssociatedEdge = currentEdge;
+			kl.prev = &EdgeKL[prevEdge][i];
+			EdgeKL[currentEdge].push_back(kl);
+		}
+
+	}
+
+}
+
+bool ProducerPathBasedMerger::GetPathBasedMerger(vector<map<int, int>>& _directed, vector<int>& _capacities, vector<bool>& Snu, vector<int>& V, vector<int>& _path, int& _pathCapacity)
+{
 	int CUhat = _capacities[_capacities.size() - 1];// capacity of u hat (the final node)
 	int EdgeCount = 0;
 	int FinalEdge = -1;// The edge leading to \hat{u}
@@ -110,6 +131,16 @@ bool ProducerPathBasedMerger::Exist(vector<map<int, int>>& _directed, vector<int
 		if (Snu[i])
 		{
 			// need to implement
+			for (map<int, int>::iterator itr1 = EdgesIndices[i].begin(); itr1 != EdgesIndices[i].end(); itr1++)
+			{
+				for (map<int, int>::iterator itr2 = ReversedEdgesIndices[i].begin(); itr2 != ReversedEdgesIndices[i].end(); itr2++)
+				{
+					// u1= itr2->first, u2 = i, u3 = itr1->first
+					// prevEdge = itr2->second, currentEdge = itr1->second
+					// current Edge Weight = _directed[i][itr1->first]
+					AddKLToEdge(EdgeKL, _capacities, V, itr2->second, itr1->second, i, itr1->first, _directed[i][itr1->first]);
+				}
+			}
 		}
 	}
 
@@ -143,6 +174,14 @@ bool ProducerPathBasedMerger::Exist(vector<map<int, int>>& _directed, vector<int
 		reverse(_path.begin(), _path.end());
 		return true;
 	}
+}
 
-	return false;
+bool ProducerPathBasedMerger::Exist(vector<map<int, int>>& _directed, vector<int>& _capacities, vector<int>& _path, int& _pathCapacity)
+{
+	// phase 1
+	vector<bool> Snu;
+	vector<int> V(_directed.size(), -1);
+	GetSnu(_directed, _capacities, Snu, V);
+	// phase 2
+	return GetPathBasedMerger(_directed, _capacities, Snu, V, _path, _pathCapacity);
 }
