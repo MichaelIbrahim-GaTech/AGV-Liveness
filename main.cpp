@@ -10,7 +10,8 @@ int main()
 	// AGV0.txt is the example depicted on Fig.1, with the modification of the edge 2->3 to 3->2
 	// AGV2.txt is the example depicted on Fig.1, with extra node 22, 2->22->3 instead of 2->3
 	// AGV3.txt is the path based merger on Fig.2a
-	string file = "AGV3.txt";
+	// AGV4.txt is a cycle based merger on Fig.2b
+	string file = "AGV4.txt";
 	AGV g(file);
 	if (g.IsLive())
 		cout << file << " is live" << endl;

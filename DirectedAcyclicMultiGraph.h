@@ -18,6 +18,7 @@ class DirectedAcyclicMultiGraph
 	vector<int> TopologicalOrder();
 	vector<bool> GetSn(vector<int> order, int n);
 	bool ExistProducerPathBasedMerger(vector<int> _order, vector<bool> Sn, int n, int u, vector<int>& path, int& capacity);
+	void GetProducerCycleBasedMerger(vector<int> _order, vector<bool> Sn, int n, int u, vector<int> path, set<int>& mergedNodes, int& capacity);
 	//This function 
 	void CollapseNonMajorNodesPaths();
 public:

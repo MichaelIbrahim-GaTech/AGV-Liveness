@@ -59,6 +59,7 @@ void ProducerPathBasedMerger::GetSnu(vector<map<int, int>>& _directed, vector<in
 
 void ProducerPathBasedMerger::AddKLToEdge(vector<vector<KLObject>>& EdgeKL, vector<int>& _capacities, vector<int>& V, int prevEdge, int currentEdge, int u2, int u3, int currentEdgeWeight)
 {
+	// 1- Generate and add all possible (that could be added) kl to to EdgeKL
 	int CUhat = _capacities[_capacities.size() - 1];
 	int Vu2u3 = V[u3] + _capacities[u2] - currentEdgeWeight;
 	for (int i = 0; i < EdgeKL[prevEdge].size(); i++)
@@ -76,9 +77,61 @@ void ProducerPathBasedMerger::AddKLToEdge(vector<vector<KLObject>>& EdgeKL, vect
 			kl.Considered = true;
 			kl.AssociatedEdge = currentEdge;
 			kl.prev = &EdgeKL[prevEdge][i];
+			for (int j = 0; j < EdgeKL[currentEdge].size(); j++)
+			{
+				if (kl < EdgeKL[currentEdge][j])
+				{
+					kl.Considered = false;
+				}
+				else if (kl > EdgeKL[currentEdge][j])
+				{
+					EdgeKL[currentEdge][j].Considered = false;
+				}
+			}
 			EdgeKL[currentEdge].push_back(kl);
 		}
-
+	}
+	// 2- Remove kls that become (not maximal) from EdgeKL
+	vector<int> NewIndices;
+	int RemovedCount = 0;
+	for (int i = 0; i < EdgeKL[currentEdge].size(); i++)
+		NewIndices.push_back(i);
+	for (int i = 0; i < EdgeKL[currentEdge].size(); i++)
+		if (!EdgeKL[currentEdge][i].Considered)
+		{
+			NewIndices[i] = -1;
+			RemovedCount++;
+		}
+	int i1 = 0, i2 = NewIndices.size() - 1;
+	while (NewIndices[i2] == -1)
+		i2--;
+	while (i1 < i2)
+	{
+		if (NewIndices[i1] == -1)
+		{
+			NewIndices[i1] = NewIndices[i2];
+			NewIndices[i2] = -1;
+			while (NewIndices[i2] == -1)
+				i2--;
+		}
+		i1++;
+	}
+	map<int, int> Order;
+	for (int i = 0; i < NewIndices.size(); i++)
+	{
+		if (NewIndices[i] != -1)
+		{
+			if (NewIndices[i] != i)
+				Order.insert(pair<int, int>(NewIndices[i], i));
+		}
+	}
+	for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
+	{
+		EdgeKL[currentEdge][itr->second] = EdgeKL[currentEdge][itr->first];
+	}
+	for (int i = 1; i < RemovedCount; i++)
+	{
+		EdgeKL[currentEdge].pop_back();
 	}
 
 }

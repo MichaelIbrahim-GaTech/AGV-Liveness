@@ -1,7 +1,11 @@
 #pragma once
+#include <iostream>
+using namespace std;
 class KLObject
 {
 public:
+	KLObject();
+	KLObject(const KLObject& _kl);
 	int K;
 	int L;
 	bool Considered;

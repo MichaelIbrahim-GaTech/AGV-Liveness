@@ -142,6 +142,67 @@ vector<bool> DirectedAcyclicMultiGraph::GetSn(vector<int> order, int n)
 	return Sn;
 }
 
+void DirectedAcyclicMultiGraph::GetProducerCycleBasedMerger(vector<int> _order, vector<bool> _Sn, int _n, int _u, vector<int> _path, set<int>& mergedNodes, int& capacity)
+{
+	int count = 0;
+	map<int, int> NewIndices;
+	vector<int> ReversedIndices;
+	vector<set<int>> SubgraphDirected;
+	vector<int> SubgraphCapacities;
+	for (int i = _n; i <= _u; i++)
+	{
+		if (_Sn[i])
+		{
+			NewIndices.insert(pair<int, int>(_order[i], count));
+			ReversedIndices.push_back(_order[i]);
+			count++;
+			SubgraphDirected.push_back(set<int>());
+			SubgraphCapacities.push_back(capacities[_order[i]]);
+		}
+	}
+	count = 0;
+	for (int i = _n; i <= _u; i++)
+	{
+		if (_Sn[i])
+		{
+			for (map<int, int>::iterator itr = directed[_order[i]].begin(); itr != directed[_order[i]].end(); itr++)
+			{
+				if (NewIndices.find(itr->first) != NewIndices.end())//Sn[itr->first] = true
+				{
+					SubgraphDirected[count].insert(NewIndices[itr->first]);
+				}
+			}
+			count++;
+		}
+	}
+	for (int i = 0; i < _path.size() - 1; i++)
+	{
+		SubgraphDirected[NewIndices[_order[_path[i]]]].erase(NewIndices[_order[_path[i + 1]]]);
+		SubgraphDirected[NewIndices[_order[_path[i + 1]]]].insert(NewIndices[_order[_path[i]]]);
+	}
+
+	vector<vector<int>> cycles = Graph::GetStronglyConnectedComponents(SubgraphDirected);
+	for (int i = 0; i < cycles.size(); i++)
+	{
+		if (find(cycles[i].begin(), cycles[i].end(), NewIndices[_u]) != cycles[i].end())
+		{
+			mergedNodes.clear();
+			for (int j = 0; j < cycles[i].size(); j++)
+			{
+				mergedNodes.insert(ReversedIndices[cycles[i][j]]);
+			}
+			capacity = 0;
+			for (set<int>::iterator itr = mergedNodes.begin(); itr != mergedNodes.end(); itr++)
+			{
+				capacity += capacities[*itr] + (nodes[*itr].size() - 1);
+			}
+
+			return;
+		}
+	}
+
+}
+
 bool DirectedAcyclicMultiGraph::ExistProducerPathBasedMerger(vector<int> _order, vector<bool> _Sn, int _n, int _u, vector<int>& _path, int& _pathCapacity)
 {
 	int count = 0;
@@ -243,6 +304,9 @@ bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 {
 	vector<int> order = TopologicalOrder();
+	vector<int> ReversedOrder(order.size(), -1);
+	for (int i = 0; i < order.size(); i++)
+		ReversedOrder[order[i]] = i;
 	map<int, int> Index;
 	for (int i = 0; i < order.size(); i++)
 		Index.insert(pair<int, int>(order[i], i));
@@ -267,11 +331,11 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 						{
 							delta[u] = rhs;
 							LU[u].clear();
-							LU[u].insert(itr->first);
+							LU[u].insert(ReversedOrder[itr->first]);
 						}
 						else if (rhs == delta[u])
 						{
-							LU[u].insert(itr->first);
+							LU[u].insert(ReversedOrder[itr->first]);
 						}
 					}
 				}
@@ -317,7 +381,32 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 					// cycle based merger
 					else if (InDegree > 1)
 					{
+						// construct a path pi from n to u
 						vector<int> Path;
+						int current = u;
+						while (current > n)
+						{
+							Path.push_back(current);
+							current = *LU[current].begin();//just pick any path
+						}
+						Path.push_back(n);
+						reverse(Path.begin(), Path.end());
+
+						set<int> MergedNodes;
+						int capacity = 0;
+						GetProducerCycleBasedMerger(order, Sn, n, u, Path, MergedNodes, capacity);
+						// performe a merger here
+						vector<int> MergedVertices;
+						for (set<int>::iterator itr = MergedNodes.begin(); itr != MergedNodes.end(); itr++)
+						{
+							for (int i = 0; i < nodes[*itr].size(); i++)
+							{
+								MergedVertices.push_back(nodes[*itr][i]);
+							}
+						}
+						*_C = *C;
+						_C->MacroMerger(MergedVertices, capacity);
+						return true;
 					}
 				}
 			}
