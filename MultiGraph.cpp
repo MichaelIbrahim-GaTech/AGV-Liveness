@@ -370,7 +370,8 @@ void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacitie
 		{
 			if (NewIndices[i] != NewIndices[itr->first])
 			{
-				_directed[NewIndices[i]].insert(pair<int, int>(NewIndices[itr->first], itr->second));
+				for (int count = 0; count < itr->second; count++)
+					_directed[NewIndices[i]].insert(pair<int, int>(NewIndices[itr->first], 1));
 			}
 		}
 		for (map<int, int>::iterator itr = undirected[i].begin(); itr != undirected[i].end(); itr++)

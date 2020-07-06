@@ -166,6 +166,7 @@ bool ProducerPathBasedMerger::GetPathBasedMerger(vector<map<int, int>>& _directe
 	}
 	vector<vector<KLObject>> EdgeKL(EdgeCount, vector<KLObject>());
 	// 1- Add KL corresponding to edges (n,u)
+	int TotalAdded = 0;
 	for (map<int, int>::iterator itr = _directed[0].begin(); itr != _directed[0].end(); itr++)
 	{
 		int Vnu = _capacities[0] + V[itr->first] - itr->second;
@@ -178,8 +179,11 @@ bool ProducerPathBasedMerger::GetPathBasedMerger(vector<map<int, int>>& _directe
 			kl.AssociatedEdge = EdgesIndices[0][itr->first];
 			kl.prev = NULL;
 			EdgeKL[EdgesIndices[0][itr->first]].push_back(kl);
+			TotalAdded++;
 		}
 	}
+	if (TotalAdded == 0)
+		return false;
 	// 2- Iterate over all the nodes
 	for (int i = 1; i < _directed.size() - 1; i++)
 	{

@@ -11,7 +11,7 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(const DirectedAcyclicMultiG
 		directed.push_back(_g.directed[i]);
 		major.push_back(_g.major[i]);
 		reversedEdges.push_back(reversedEdges[i]);
-		collapsedNodes.push_back(collapsedNodes[i]);
+		collapsedPaths.push_back(collapsedPaths[i]);
 	}
 }
 
@@ -23,7 +23,7 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 	{
 		major.push_back(false);
 		reversedEdges.push_back(multimap<int, int>());
-		collapsedNodes.push_back(map<int, vector<int>>());
+		collapsedPaths.push_back(map<int, vector<int>>());
 	}
 	for (int i = 0; i < directed.size(); i++)
 	{
@@ -58,22 +58,139 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 			}
 		}
 	}
-	//CollapseNonMajorNodesPaths();
+	CollapseNonMajorNodesPaths();
+	major.clear();
 }
 
-//void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
-//{ 
-//	for (int i = nodes.size() - 1; i >= 0; i--)
-//	{
-//		if (!major[i])
-//		{
-//			if ((reversedEdges[i].size() == 1) && (directed[i].size() == 1))
-//			{
-//				// put the necessary code to collapse this node
-//			}
-//		}
-//	}
-//}
+void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
+{ 
+	set<int> IgnoredNodes;
+	for (int i = 0; i < nodes.size(); i++)
+	{
+		if (!major[i])
+		{
+			if ((reversedEdges[i].size() == 1) && (directed[i].size() == 1))
+			{
+				// put the necessary code to collapse this node
+				IgnoredNodes.insert(i);
+				int weight = directed[i].begin()->second + reversedEdges[i].begin()->second;
+				int from = reversedEdges[i].begin()->first;
+				int to = directed[i].begin()->first;
+				reversedEdges[to].erase(i); reversedEdges[i].erase(from);
+				directed[from].erase(i); directed[i].erase(to);
+				directed[from].insert(pair<int, int>(to, weight));
+				reversedEdges[to].insert(pair<int, int>(from, weight));
+				// get the vertices that will result from this collapse
+				vector<int> CollapsedVertices(nodes[i]);
+				if (collapsedPaths[from].find(i) != collapsedPaths[from].end())
+				{
+					vector<int> ToAdd = collapsedPaths[from][i];
+					for (int j = 0; j < ToAdd.size(); j++)
+						CollapsedVertices.push_back(ToAdd[j]);
+					collapsedPaths[from].erase(i);
+				}
+				if (collapsedPaths[i].find(to) != collapsedPaths[i].end())
+				{
+					vector<int> ToAdd = collapsedPaths[i][to];
+					for (int j = 0; j < ToAdd.size(); j++)
+						CollapsedVertices.push_back(ToAdd[j]);
+					collapsedPaths[i].erase(to);
+				}
+				if (collapsedPaths[from].find(to) == collapsedPaths[from].end())
+					collapsedPaths[from].insert(pair<int, vector<int>>(to, CollapsedVertices));
+				else
+				{
+					for (int j = 0; j < CollapsedVertices.size(); j++)
+						collapsedPaths[from][to].push_back(CollapsedVertices[j]);
+				}
+			}
+		}
+	}
+
+	if (IgnoredNodes.size() > 0)
+	{
+		vector<int> NewIndices;
+		for (int i = 0; i < nodes.size(); i++)
+			NewIndices.push_back(i);
+		for (set<int>::iterator itr = IgnoredNodes.begin(); itr != IgnoredNodes.end(); itr++)
+			NewIndices[*itr] = -1;
+		int i1 = 0, i2 = NewIndices.size() - 1;
+		while (NewIndices[i2] == -1)
+			i2--;
+		while (i1 < i2)
+		{
+			if (NewIndices[i1] == -1)
+			{
+				NewIndices[i1] = NewIndices[i2];
+				NewIndices[i2] = -1;
+				while (NewIndices[i2] == -1)
+					i2--;
+			}
+			i1++;
+		}
+		// 5- check which nodes will have a different order
+		map<int, int> Order;
+		for (int i = 0; i < NewIndices.size(); i++)
+		{
+			if (NewIndices[i] != -1)
+			{
+				if (NewIndices[i] != i)
+					Order.insert(pair<int, int>(NewIndices[i], i));
+			}
+		}
+		if (Order.find(nh) != Order.end())
+		{
+			nh = Order[nh];
+		}
+		for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
+		{
+			nodes[itr->second] = nodes[itr->first];
+			directed[itr->second] = directed[itr->first];
+			reversedEdges[itr->second] = reversedEdges[itr->first];
+			collapsedPaths[itr->second] = collapsedPaths[itr->first];
+			capacities[itr->second] = capacities[itr->first];
+			nodes[itr->first].clear();
+			directed[itr->first].clear();
+			reversedEdges[itr->first].clear();
+			collapsedPaths[itr->first].clear();
+		}
+		for (int i = 0; i < IgnoredNodes.size(); i++)
+		{
+			nodes.pop_back();
+			directed.pop_back();
+			reversedEdges.pop_back();
+			collapsedPaths.pop_back();
+			capacities.pop_back();
+		}
+		// 6- modify the edges according to the new order
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
+			{
+				pair<multimap<int, int>::iterator, multimap<int, int>::iterator> result = directed[i].equal_range(itr->first);
+				if (distance(result.first, result.second) > 0)
+				{
+					for (multimap<int, int>::iterator itr2 = result.first; itr2 != result.second; itr2++)
+						directed[i].insert(pair<int, int>(itr->second, itr2->second));
+					directed[i].erase(itr->first);
+				}
+				result = reversedEdges[i].equal_range(itr->first);
+				if (distance(result.first, result.second) > 0)
+				{
+					for (multimap<int, int>::iterator itr2 = result.first; itr2 != result.second; itr2++)
+						reversedEdges[i].insert(pair<int, int>(itr->second, itr2->second));
+					reversedEdges[i].erase(itr->first);
+				}
+				map<int, vector<int>>::iterator itr2 = collapsedPaths[i].find(itr->first);
+				if (itr2 != collapsedPaths[i].end())
+				{
+					collapsedPaths[i].insert(pair<int, vector<int>>(itr->second, itr2->second));
+					collapsedPaths[i].erase(itr->first);
+				}
+			}
+		}
+	}
+}
 
 bool DirectedAcyclicMultiGraph::TerminalNodesCapacityLessThanAllInEdges()
 {
@@ -291,6 +408,19 @@ bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 				MergedVertices.push_back(nodes[*itr][i]);
 			}
 		}
+		// Add the merged vertices from collapsed paths
+		for (set<int>::iterator i = MergedNodes.begin(); i != MergedNodes.end(); i++)
+		{
+			for (set<int>::iterator j = MergedNodes.begin(); j != MergedNodes.end(); j++)
+			{
+				if (collapsedPaths[*i].find(*j) != collapsedPaths[*i].end())
+				{
+					vector<int> ToAdd = collapsedPaths[*i][*j];
+					for (int k = 0; k < ToAdd.size(); k++)
+						MergedVertices.push_back(ToAdd[k]);
+				}
+			}
+		}
 		_C->MacroMerger(MergedVertices);
 		return true;
 	}
@@ -363,7 +493,7 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 						{
 							vector<int> MergedVertices;
 							// this function check if there are other nodes that could be merged due to a newly generated cycle
-							GetMergedVertices(Path, capacity, MergedVertices);
+							GetMergedVertices(Path, MergedVertices);
 							// performe a merger here
 							*_C = *C;
 							_C->MacroMerger(MergedVertices);
@@ -394,6 +524,19 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 							for (int i = 0; i < nodes[*itr].size(); i++)
 							{
 								MergedVertices.push_back(nodes[*itr][i]);
+							}
+						}
+						// Add the merged vertices from collapsed paths
+						for (set<int>::iterator i = MergedNodes.begin(); i != MergedNodes.end(); i++)
+						{
+							for (set<int>::iterator j = MergedNodes.begin(); j != MergedNodes.end(); j++)
+							{
+								if (collapsedPaths[*i].find(*j) != collapsedPaths[*i].end())
+								{
+									vector<int> ToAdd = collapsedPaths[*i][*j];
+									for (int k = 0; k < ToAdd.size(); k++)
+										MergedVertices.push_back(ToAdd[k]);
+								}
 							}
 						}
 						*_C = *C;
@@ -430,7 +573,7 @@ vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndColla
 			int capacity = capacities[Terminal] + capacities[itr->first] - itr->second;
 			vector<int> MergedVertices;
 			// this function check if there are other nodes that could be merged due to a newly generated cycle
-			GetMergedVertices(Path, capacity, MergedVertices);
+			GetMergedVertices(Path, MergedVertices);
 			// performe a merger here
 			CondensedMultiGraph _C = *C;
 			_C.MacroMerger(MergedVertices);
@@ -443,7 +586,7 @@ vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndColla
 // This function gets as input a path to be merged and its capacity
 // And it checks if new cycles are generated from this merger
 // Then, it returns the nodes to be merged and the capacity of the merged node
-void DirectedAcyclicMultiGraph::GetMergedVertices(vector<int> _path, int& _capacity, vector<int>& _mergedVertices)
+void DirectedAcyclicMultiGraph::GetMergedVertices(vector<int> _path, vector<int>& _mergedVertices)
 {
 	set<int> _mergedNodes;
 	int n = nodes.size();
@@ -472,45 +615,34 @@ void DirectedAcyclicMultiGraph::GetMergedVertices(vector<int> _path, int& _capac
 		// This is the component that contains the path 
 		if (find(cycles[c].begin(), cycles[c].end(), _path[0]) != cycles[c].end())
 		{
-			// no new cycles will be generated from this merger
-			if (cycles[c].size() == _path.size())
+			for (int i = 0; i < cycles[c].size(); i++)
 			{
-				for (int i = 0; i < _path.size(); i++)
-					_mergedNodes.insert(_path[i]);
-				//
-				for (set<int>::iterator itr = _mergedNodes.begin(); itr != _mergedNodes.end(); itr++)
-				{
-					for (int i = 0; i < nodes[*itr].size(); i++)
-					{
-						_mergedVertices.push_back(nodes[*itr][i]);
-					}
-				}
-				return;
+				_mergedNodes.insert(cycles[c][i]);
 			}
-			// new cycles will be generated from this merger
-			else
+			// Add the merged vertices
+			for (int i = 0; i < cycles[c].size(); i++)
 			{
-				cout << "New cycles generated" << endl;
-				for (int i = 0; i < _path.size(); i++)
-					_mergedNodes.insert(_path[i]);
-				for (int i = 0; i < cycles[c].size(); i++)
+				for (int j = 0; j < nodes[cycles[c][i]].size(); j++)
 				{
-					if (_mergedNodes.find(cycles[c][i]) == _mergedNodes.end())
-					{
-						_mergedNodes.insert(cycles[c][i]);
-						_capacity += capacities[cycles[c][i]] + (nodes[cycles[c][i]].size() - 1);
-					}
+					_mergedVertices.push_back(nodes[cycles[c][i]][j]);
 				}
-				//
-				for (set<int>::iterator itr = _mergedNodes.begin(); itr != _mergedNodes.end(); itr++)
-				{
-					for (int i = 0; i < nodes[*itr].size(); i++)
-					{
-						_mergedVertices.push_back(nodes[*itr][i]);
-					}
-				}
-				return;
 			}
+			// Add the merged vertices from collapsed paths
+			for (int i = 0; i < cycles[c].size(); i++)
+			{
+				for (int j = 0; j < cycles[c].size(); j++)
+				{
+					if (collapsedPaths[cycles[c][i]].find(cycles[c][j]) != collapsedPaths[cycles[c][i]].end())
+					{
+						vector<int> ToAdd = collapsedPaths[cycles[c][i]][cycles[c][j]];
+						for (int k = 0; k < ToAdd.size(); k++)
+							_mergedVertices.push_back(ToAdd[k]);
+					}
+				}
+			}
+
+			return;
+			
 		}
 	}
 	//

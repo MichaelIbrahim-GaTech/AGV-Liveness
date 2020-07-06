@@ -138,6 +138,7 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices)
 	}
 	// 2b- Calculate the capacity of the macro-vertex
 	int _capacity = Ghat->CalculateCapacity(vertices[NewVertex]);
+	capacities[NewVertex] = _capacity;
 	// 3- modify all edges with the new vertex info
 	for (int i = 0; i < vertices.size(); i++)
 	{
@@ -153,7 +154,6 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices)
 
 	}
 	// 4- 
-	capacities[NewVertex] = _capacity;
 	vector<int> NewIndices;
 	for (int i = 0; i < vertices.size(); i++)
 		NewIndices.push_back(i);
@@ -210,8 +210,6 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices)
 	// 6- modify the edges according to the new order
 	for (int i = 0; i < vertices.size(); i++)
 	{
-		//modify the code to be a multigraph
-
 		for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
 		{
 			pair<multimap<int,int>::iterator, multimap<int, int>::iterator> result = directed[i].equal_range(itr->first);

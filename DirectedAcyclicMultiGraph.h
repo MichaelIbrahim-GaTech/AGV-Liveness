@@ -13,15 +13,15 @@ class DirectedAcyclicMultiGraph
 	vector<multimap<int, int>> directed;
 	vector<bool> major;
 	vector<multimap<int, int>> reversedEdges;
-	vector<map<int, vector<int>>> collapsedNodes;//from-to, vector of collapsed vertices
+	vector<map<int, vector<int>>> collapsedPaths;//from-to, vector of collapsed vertices
 	//Get the topological order of the nodes of the DAG
 	vector<int> TopologicalOrder();
 	vector<bool> GetSn(vector<int> order, int n);
 	bool ExistProducerPathBasedMerger(vector<int> _order, vector<bool> Sn, int n, int u, vector<int>& path, int& capacity);
 	void GetProducerCycleBasedMerger(vector<int> _order, vector<bool> Sn, int n, int u, vector<int> path, set<int>& mergedNodes, int& capacity);
 	//This function collapse non-major nodes
-	//void CollapseNonMajorNodesPaths();
-	void GetMergedVertices(vector<int> _path, int& _capacity, vector<int>& _mergedVertices);
+	void CollapseNonMajorNodesPaths();
+	void GetMergedVertices(vector<int> _path, vector<int>& _mergedVertices);
 public:
 	DirectedAcyclicMultiGraph() {}
 	DirectedAcyclicMultiGraph(const DirectedAcyclicMultiGraph&);

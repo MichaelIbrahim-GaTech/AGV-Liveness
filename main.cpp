@@ -14,7 +14,9 @@ int main()
 	// AGV5.txt is a cycle based merger on Fig.3a
 	// AGV6.txt is a path based producer merger similar to Fig.3b
 	// AGV7.txt is the example depicted on Fig.4
-	string file = "AGV7.txt";
+	// AGV8.txt is an example similar to the rev-prod-path-based-merger-check.pdf
+	// AGV9.txt is an example similar to the rev-prod-path-based-merger-check.pdf
+	string file = "AGV9.txt";
 	AGV g(file);
 	if (g.IsLive())
 		cout << file << " is live" << endl;
