@@ -224,6 +224,16 @@ vector<vector<int>> MultiGraph::RemoveAllOneDegreeVertices(const vector<vector<i
 	return result;
 }
 
+
+int MultiGraph::CalculateCapacity(vector<int> _vertices)
+{
+	vector<vector<int>> SCC;
+	SCC.push_back(_vertices);
+	vector<int> _capacities = CalculateCapacities(SCC);
+	return _capacities[0];
+}
+
+
 vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 {
 	vector<int> capacities;
@@ -274,26 +284,40 @@ vector<int> MultiGraph::CalculateCapacities(const vector<vector<int>>& _ds)
 		vector<pair<int,int>> bridges = Graph::bridge(edges);
 		for (int j = 0; j < bridges.size(); j++)
 		{
-			// we substract an edge if it was free
-			if (directed[_ds[i][bridges[j].first]].find(_ds[i][bridges[j].second]) == directed[_ds[i][bridges[j].first]].end())
+			// we substract an edge if it was a bridge
+			int EdgeCount = 0;
+			if (directed[_ds[i][bridges[j].first]].find(_ds[i][bridges[j].second]) != directed[_ds[i][bridges[j].first]].end())
 			{
-				// we substract an edge if it was free
-				if (directed[_ds[i][bridges[j].second]].find(_ds[i][bridges[j].first]) == directed[_ds[i][bridges[j].second]].end())
-				{
-					int from = _ds[i][bridges[j].first], to = _ds[i][bridges[j].second];
-					if (from > to)
-					{
-						int temp = from;
-						from = to;
-						to = temp;
-					}
-					// remove a bridge from capacity if it is a single edge no a multi-edge
-					if (undirected[from].find(to)->second <= 1)
-						capacity--;
-				}
+				EdgeCount += directed[_ds[i][bridges[j].first]][_ds[i][bridges[j].second]];
 			}
+			if (directed[_ds[i][bridges[j].second]].find(_ds[i][bridges[j].first]) != directed[_ds[i][bridges[j].second]].end())
+			{
+				EdgeCount += directed[_ds[i][bridges[j].second]][_ds[i][bridges[j].first]];
+			}
+			int from = _ds[i][bridges[j].first], to = _ds[i][bridges[j].second];
+			if (from > to)
+			{
+				int temp = from;
+				from = to;
+				to = temp;
+			}
+			if (undirected[from].find(to) != undirected[from].end())
+			{
+				EdgeCount += undirected[from][to];
+			}
+			// remove a bridge from capacity if it is a single edge no a multi-edge
+			if (EdgeCount <= 1)
+				capacity--;
 		}
 		capacities.push_back(capacity);
+	}
+	for (int i = 0; i < _ds.size(); i++)
+	{
+		for (int j = 0; j < _ds[i].size(); j++)
+		{
+			if (_ds[i][j] == nh)
+				capacities[i] = INFINITY;
+		}
 	}
 	return capacities;
 }
@@ -326,7 +350,10 @@ void MultiGraph::Condense(vector<vector<int>>& _vertices, vector<int>& capacitie
 			temp.push_back(i);
 			NewIndices[i] = _vertices.size();
 			_vertices.push_back(temp);
-			capacities.push_back(0);
+			if (i == nh)
+				capacities.push_back(INFINITY);
+			else
+				capacities.push_back(0);
 		}
 	}
 	*_nh = NewIndices[nh];

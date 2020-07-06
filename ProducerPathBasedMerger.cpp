@@ -92,48 +92,50 @@ void ProducerPathBasedMerger::AddKLToEdge(vector<vector<KLObject>>& EdgeKL, vect
 		}
 	}
 	// 2- Remove kls that become (not maximal) from EdgeKL
-	vector<int> NewIndices;
-	int RemovedCount = 0;
-	for (int i = 0; i < EdgeKL[currentEdge].size(); i++)
-		NewIndices.push_back(i);
-	for (int i = 0; i < EdgeKL[currentEdge].size(); i++)
-		if (!EdgeKL[currentEdge][i].Considered)
+	if (EdgeKL[currentEdge].size() > 0)
+	{
+		vector<int> NewIndices;
+		int RemovedCount = 0;
+		for (int i = 0; i < EdgeKL[currentEdge].size(); i++)
+			NewIndices.push_back(i);
+		for (int i = 0; i < EdgeKL[currentEdge].size(); i++)
+			if (!EdgeKL[currentEdge][i].Considered)
+			{
+				NewIndices[i] = -1;
+				RemovedCount++;
+			}
+		int i1 = 0, i2 = NewIndices.size() - 1;
+		while (NewIndices[i2] == -1)
+			i2--;
+		while (i1 < i2)
 		{
-			NewIndices[i] = -1;
-			RemovedCount++;
+			if (NewIndices[i1] == -1)
+			{
+				NewIndices[i1] = NewIndices[i2];
+				NewIndices[i2] = -1;
+				while (NewIndices[i2] == -1)
+					i2--;
+			}
+			i1++;
 		}
-	int i1 = 0, i2 = NewIndices.size() - 1;
-	while (NewIndices[i2] == -1)
-		i2--;
-	while (i1 < i2)
-	{
-		if (NewIndices[i1] == -1)
+		map<int, int> Order;
+		for (int i = 0; i < NewIndices.size(); i++)
 		{
-			NewIndices[i1] = NewIndices[i2];
-			NewIndices[i2] = -1;
-			while (NewIndices[i2] == -1)
-				i2--;
+			if (NewIndices[i] != -1)
+			{
+				if (NewIndices[i] != i)
+					Order.insert(pair<int, int>(NewIndices[i], i));
+			}
 		}
-		i1++;
-	}
-	map<int, int> Order;
-	for (int i = 0; i < NewIndices.size(); i++)
-	{
-		if (NewIndices[i] != -1)
+		for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
 		{
-			if (NewIndices[i] != i)
-				Order.insert(pair<int, int>(NewIndices[i], i));
+			EdgeKL[currentEdge][itr->second] = EdgeKL[currentEdge][itr->first];
+		}
+		for (int i = 0; i < RemovedCount; i++)
+		{
+			EdgeKL[currentEdge].pop_back();
 		}
 	}
-	for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
-	{
-		EdgeKL[currentEdge][itr->second] = EdgeKL[currentEdge][itr->first];
-	}
-	for (int i = 1; i < RemovedCount; i++)
-	{
-		EdgeKL[currentEdge].pop_back();
-	}
-
 }
 
 bool ProducerPathBasedMerger::GetPathBasedMerger(vector<map<int, int>>& _directed, vector<int>& _capacities, vector<bool>& Snu, vector<int>& V, vector<int>& _path, int& _pathCapacity)
@@ -155,7 +157,7 @@ bool ProducerPathBasedMerger::GetPathBasedMerger(vector<map<int, int>>& _directe
 			EdgeCount++;
 		}
 	}
-	for (int i = 0; i < _directed.size(); i++)
+	for (int i = 0; i < EdgesIndices.size(); i++)
 	{
 		for (map<int, int>::iterator itr = EdgesIndices[i].begin(); itr != EdgesIndices[i].end(); itr++)
 		{
@@ -214,11 +216,11 @@ bool ProducerPathBasedMerger::GetPathBasedMerger(vector<map<int, int>>& _directe
 			int edge = currentKL->AssociatedEdge;
 			for (map<int, int>::iterator itr = ReversedEdgesIndices[current].begin(); itr != ReversedEdgesIndices[current].end(); itr++)
 			{
-				if (ReversedEdgesIndices[current][itr->second] == edge)
+				if (itr->second == edge)
 				{
-					_pathCapacity += _capacities[itr->second] - _directed[itr->second][current];
-					_path.push_back(itr->second);
-					current = itr->second;
+					_pathCapacity += _capacities[itr->first] - _directed[itr->first][current];
+					_path.push_back(itr->first);
+					current = itr->first;
 					currentKL = currentKL->prev;
 					break;
 				}

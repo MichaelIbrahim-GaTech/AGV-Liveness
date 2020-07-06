@@ -61,19 +61,19 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 	//CollapseNonMajorNodesPaths();
 }
 
-void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
-{ 
-	for (int i = nodes.size() - 1; i >= 0; i--)
-	{
-		if (!major[i])
-		{
-			if ((reversedEdges[i].size() == 1) && (directed[i].size() == 1))
-			{
-				// put the necessary code to collapse this node
-			}
-		}
-	}
-}
+//void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
+//{ 
+//	for (int i = nodes.size() - 1; i >= 0; i--)
+//	{
+//		if (!major[i])
+//		{
+//			if ((reversedEdges[i].size() == 1) && (directed[i].size() == 1))
+//			{
+//				// put the necessary code to collapse this node
+//			}
+//		}
+//	}
+//}
 
 bool DirectedAcyclicMultiGraph::TerminalNodesCapacityLessThanAllInEdges()
 {
@@ -291,7 +291,7 @@ bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 				MergedVertices.push_back(nodes[*itr][i]);
 			}
 		}
-		_C->MacroMerger(MergedVertices, INFINITY);
+		_C->MacroMerger(MergedVertices);
 		return true;
 	}
 	else
@@ -361,20 +361,12 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 						int capacity = 0;
 						if (ExistProducerPathBasedMerger(order, Sn, n, u, Path, capacity))
 						{
-							set<int> MergedNodes;
-							for (int i = 0; i < Path.size(); i++)
-								MergedNodes.insert(Path[i]);
-							// performe a merger here
 							vector<int> MergedVertices;
-							for (set<int>::iterator itr = MergedNodes.begin(); itr != MergedNodes.end(); itr++)
-							{
-								for (int i = 0; i < nodes[*itr].size(); i++)
-								{
-									MergedVertices.push_back(nodes[*itr][i]);
-								}
-							}
+							// this function check if there are other nodes that could be merged due to a newly generated cycle
+							GetMergedVertices(Path, capacity, MergedVertices);
+							// performe a merger here
 							*_C = *C;
-							_C->MacroMerger(MergedVertices, capacity);
+							_C->MacroMerger(MergedVertices);
 							return true;
 						}
 					}
@@ -405,7 +397,7 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 							}
 						}
 						*_C = *C;
-						_C->MacroMerger(MergedVertices, capacity);
+						_C->MacroMerger(MergedVertices);
 						return true;
 					}
 				}
@@ -432,14 +424,101 @@ vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndColla
 	{
 		if (itr->second <= capacities[Terminal])
 		{
-			vector<int> MergedVertices(nodes[Terminal]);
-			for (int i = 0; i < nodes[itr->first].size(); i++)
-				MergedVertices.push_back(nodes[itr->first][i]);
+			vector<int> Path;
+			Path.push_back(itr->first);
+			Path.push_back(Terminal);
 			int capacity = capacities[Terminal] + capacities[itr->first] - itr->second;
+			vector<int> MergedVertices;
+			// this function check if there are other nodes that could be merged due to a newly generated cycle
+			GetMergedVertices(Path, capacity, MergedVertices);
+			// performe a merger here
 			CondensedMultiGraph _C = *C;
-			_C.MacroMerger(MergedVertices, capacity);
+			_C.MacroMerger(MergedVertices);
 			result.push_back(_C);
 		}
 	}
 	return result;
+}
+
+// This function gets as input a path to be merged and its capacity
+// And it checks if new cycles are generated from this merger
+// Then, it returns the nodes to be merged and the capacity of the merged node
+void DirectedAcyclicMultiGraph::GetMergedVertices(vector<int> _path, int& _capacity, vector<int>& _mergedVertices)
+{
+	set<int> _mergedNodes;
+	int n = nodes.size();
+	vector<set<int>> D;
+	for (int i = 0; i < n; i++)
+	{
+		D.push_back(set<int>());
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+		{
+			D[i].insert(itr->first);
+		}
+	}
+
+	for (int i = 0; i < _path.size() - 1; i++)
+	{
+		D[_path[i + 1]].insert(_path[i]);
+	}
+
+	vector<vector<int>> cycles = Graph::GetStronglyConnectedComponents(D);
+
+	for(int c = 0; c < cycles.size(); c++)
+	{
+		// This is the component that contains the path 
+		if (find(cycles[c].begin(), cycles[c].end(), _path[0]) != cycles[c].end())
+		{
+			// no new cycles will be generated from this merger
+			if (cycles[c].size() == _path.size())
+			{
+				for (int i = 0; i < _path.size(); i++)
+					_mergedNodes.insert(_path[i]);
+				//
+				for (set<int>::iterator itr = _mergedNodes.begin(); itr != _mergedNodes.end(); itr++)
+				{
+					for (int i = 0; i < nodes[*itr].size(); i++)
+					{
+						_mergedVertices.push_back(nodes[*itr][i]);
+					}
+				}
+				return;
+			}
+			// new cycles will be generated from this merger
+			else
+			{
+				cout << "New cycles generated" << endl;
+				for (int i = 0; i < _path.size(); i++)
+					_mergedNodes.insert(_path[i]);
+				for (int i = 0; i < cycles[c].size(); i++)
+				{
+					if (_mergedNodes.find(cycles[c][i]) == _mergedNodes.end())
+					{
+						_mergedNodes.insert(cycles[c][i]);
+						_capacity += capacities[cycles[c][i]] + (nodes[cycles[c][i]].size() - 1);
+					}
+				}
+				//
+				for (set<int>::iterator itr = _mergedNodes.begin(); itr != _mergedNodes.end(); itr++)
+				{
+					for (int i = 0; i < nodes[*itr].size(); i++)
+					{
+						_mergedVertices.push_back(nodes[*itr][i]);
+					}
+				}
+				return;
+			}
+		}
+	}
+	//
+	for (set<int>::iterator itr = _mergedNodes.begin(); itr != _mergedNodes.end(); itr++)
+	{
+		for (int i = 0; i < nodes[*itr].size(); i++)
+		{
+			_mergedVertices.push_back(nodes[*itr][i]);
+		}
+	}
 }

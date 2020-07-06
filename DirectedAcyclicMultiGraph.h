@@ -19,8 +19,9 @@ class DirectedAcyclicMultiGraph
 	vector<bool> GetSn(vector<int> order, int n);
 	bool ExistProducerPathBasedMerger(vector<int> _order, vector<bool> Sn, int n, int u, vector<int>& path, int& capacity);
 	void GetProducerCycleBasedMerger(vector<int> _order, vector<bool> Sn, int n, int u, vector<int> path, set<int>& mergedNodes, int& capacity);
-	//This function 
-	void CollapseNonMajorNodesPaths();
+	//This function collapse non-major nodes
+	//void CollapseNonMajorNodesPaths();
+	void GetMergedVertices(vector<int> _path, int& _capacity, vector<int>& _mergedVertices);
 public:
 	DirectedAcyclicMultiGraph() {}
 	DirectedAcyclicMultiGraph(const DirectedAcyclicMultiGraph&);

@@ -23,6 +23,7 @@ public:
 	MultiGraph(const MultiGraph& _g);
 	MultiGraph(vector<map<int, int>> _undirected, int _nh);
 	bool AddVehicules(vector<map<int, int>> _directed, bool clear = true);
+	int CalculateCapacity(vector<int> _vertices);
 	void Condense(vector<vector<int>>& _vertices, vector<int>& capacities, vector<map<int, int>>& _undirected, vector<multimap<int, int>>& _directed,int*_nh);
 };
 

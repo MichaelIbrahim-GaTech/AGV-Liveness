@@ -97,7 +97,7 @@ bool CondensedMultiGraph::isSingleChained()
 	return (vertices.size() == 1);
 }
 
-void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity)
+void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices)
 {
 	sort(_mergedVertices.begin(), _mergedVertices.end());
 	int NewVertex = _mergedVertices[0];
@@ -136,6 +136,8 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 		directed[_mergedVertices[i]].clear();
 		undirected[_mergedVertices[i]].clear();
 	}
+	// 2b- Calculate the capacity of the macro-vertex
+	int _capacity = Ghat->CalculateCapacity(vertices[NewVertex]);
 	// 3- modify all edges with the new vertex info
 	for (int i = 0; i < vertices.size(); i++)
 	{
@@ -183,6 +185,10 @@ void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices, int _capacity
 			if (NewIndices[i] != i)
 				Order.insert(pair<int, int>(NewIndices[i], i));
 		}
+	}
+	if (Order.find(nh) != Order.end())
+	{
+		nh = Order[nh];
 	}
 	for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
 	{
