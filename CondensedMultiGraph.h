@@ -17,6 +17,7 @@ public:
 	CondensedMultiGraph(const CondensedMultiGraph& _g);
 	CondensedMultiGraph(MultiGraph* _g);
 	bool isSingleChained();
+	bool isComplexComponent(int v);
 	void CondenseDirected(vector<vector<int>>& _nodes, vector<int>& _capacities, vector<multimap<int, int>>& _directed, int* _nh);
 	void MacroMerger(vector<int> _mergedVertices);
 };

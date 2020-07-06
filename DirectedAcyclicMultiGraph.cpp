@@ -10,8 +10,9 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(const DirectedAcyclicMultiG
 		capacities.push_back(_g.capacities[i]);
 		directed.push_back(_g.directed[i]);
 		major.push_back(_g.major[i]);
-		reversedEdges.push_back(reversedEdges[i]);
-		collapsedPaths.push_back(collapsedPaths[i]);
+		reversedEdges.push_back(_g.reversedEdges[i]);
+		collapsedPaths.push_back(_g.collapsedPaths[i]);
+		nodeInDegree.push_back(_g.nodeInDegree[i]);
 	}
 }
 
@@ -40,17 +41,34 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 		{
 			major[i] = true;
 		}
+		else if (nodes[i].size() > 1)
+		{
+			major[i] = true;
+		}
+		else if (C->isComplexComponent(nodes[i][0]))
+		{
+			major[i] = true;
+		}
 		else
 		{
-			int OutDegree = directed[i].size();
+			set<int> OutNodes;
+			for (map<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+			{
+				OutNodes.insert(itr->first);
+			}
+			int OutDegree = OutNodes.size();
 			if (OutDegree >= 2)
 			{
 				major[i] = true;
 			}
 			else
 			{
-
-				int InDegree = reversedEdges[i].size();
+				set<int> InNodes;
+				for (map<int, int>::iterator itr = reversedEdges[i].begin(); itr != reversedEdges[i].end(); itr++)
+				{
+					InNodes.insert(itr->first);
+				}
+				int InDegree = InNodes.size();
 				if (InDegree >= 2)
 				{
 					major[i] = true;
@@ -58,8 +76,17 @@ DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(CondensedMultiGraph* _C)
 			}
 		}
 	}
+	for (int i = 0; i < nodes.size(); i++)
+	{
+		set<int> InNodes;
+		for (map<int, int>::iterator itr = reversedEdges[i].begin(); itr != reversedEdges[i].end(); itr++)
+		{
+			InNodes.insert(itr->first);
+		}
+		nodeInDegree.push_back(InNodes.size());
+	}
 	CollapseNonMajorNodesPaths();
-	major.clear();
+	//major.clear();
 }
 
 void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
@@ -128,7 +155,7 @@ void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
 			}
 			i1++;
 		}
-		// 5- check which nodes will have a different order
+		// check which nodes will have a different order
 		map<int, int> Order;
 		for (int i = 0; i < NewIndices.size(); i++)
 		{
@@ -149,6 +176,7 @@ void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
 			reversedEdges[itr->second] = reversedEdges[itr->first];
 			collapsedPaths[itr->second] = collapsedPaths[itr->first];
 			capacities[itr->second] = capacities[itr->first];
+			nodeInDegree[itr->second] = nodeInDegree[itr->first];
 			nodes[itr->first].clear();
 			directed[itr->first].clear();
 			reversedEdges[itr->first].clear();
@@ -161,6 +189,7 @@ void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
 			reversedEdges.pop_back();
 			collapsedPaths.pop_back();
 			capacities.pop_back();
+			nodeInDegree.pop_back();
 		}
 		// 6- modify the edges according to the new order
 		for (int i = 0; i < nodes.size(); i++)
@@ -304,6 +333,8 @@ void DirectedAcyclicMultiGraph::GetProducerCycleBasedMerger(vector<int> _order, 
 		if (find(cycles[i].begin(), cycles[i].end(), NewIndices[_u]) != cycles[i].end())
 		{
 			mergedNodes.clear();
+			for (int j = 0; j < _path.size(); j++)
+				mergedNodes.insert(_path[j]);
 			for (int j = 0; j < cycles[i].size(); j++)
 			{
 				mergedNodes.insert(ReversedIndices[cycles[i][j]]);
@@ -468,16 +499,7 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 
 				if (delta[u] == 0)
 				{
-					int InDegree = 0;
-					set<int> InNodes;
-					for (map<int, int>::iterator itr = reversedEdges[order[u]].begin(); itr != reversedEdges[order[u]].end(); itr++)
-					{
-						if (Sn[Index[itr->first]])
-						{
-							InNodes.insert(itr->first);
-						}
-					}
-					InDegree = InNodes.size();
+					int InDegree = nodeInDegree[order[u]];
 					// path based merger
 					if (InDegree == 1)
 					{

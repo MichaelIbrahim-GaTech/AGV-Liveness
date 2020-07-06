@@ -97,6 +97,11 @@ bool CondensedMultiGraph::isSingleChained()
 	return (vertices.size() == 1);
 }
 
+bool CondensedMultiGraph::isComplexComponent(int v)
+{
+	return (vertices[v].size() > 1);
+}
+
 void CondensedMultiGraph::MacroMerger(vector<int> _mergedVertices)
 {
 	sort(_mergedVertices.begin(), _mergedVertices.end());

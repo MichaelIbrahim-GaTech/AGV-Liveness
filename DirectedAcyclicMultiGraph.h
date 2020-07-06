@@ -10,6 +10,7 @@ class DirectedAcyclicMultiGraph
 	int nh;
 	vector<vector<int>> nodes;
 	vector<int> capacities;
+	vector<int> nodeInDegree;
 	vector<multimap<int, int>> directed;
 	vector<bool> major;
 	vector<multimap<int, int>> reversedEdges;
