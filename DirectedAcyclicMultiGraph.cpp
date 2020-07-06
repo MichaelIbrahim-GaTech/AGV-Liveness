@@ -259,7 +259,7 @@ vector<bool> DirectedAcyclicMultiGraph::GetSn(vector<int> order, int n)
 	return Sn;
 }
 
-void DirectedAcyclicMultiGraph::GetProducerCycleBasedMerger(vector<int> _order, vector<bool> _Sn, int _n, int _u, vector<int> _path, set<int>& mergedNodes, int& capacity)
+void DirectedAcyclicMultiGraph::GetProducerCycleBasedMerger(vector<int> _order, vector<bool> _Sn, int _n, int _u, vector<int> _path, set<int>& mergedNodes)
 {
 	int count = 0;
 	map<int, int> NewIndices;
@@ -308,19 +308,13 @@ void DirectedAcyclicMultiGraph::GetProducerCycleBasedMerger(vector<int> _order, 
 			{
 				mergedNodes.insert(ReversedIndices[cycles[i][j]]);
 			}
-			capacity = 0;
-			for (set<int>::iterator itr = mergedNodes.begin(); itr != mergedNodes.end(); itr++)
-			{
-				capacity += capacities[*itr] + (nodes[*itr].size() - 1);
-			}
-
 			return;
 		}
 	}
 
 }
 
-bool DirectedAcyclicMultiGraph::ExistProducerPathBasedMerger(vector<int> _order, vector<bool> _Sn, int _n, int _u, vector<int>& _path, int& _pathCapacity)
+bool DirectedAcyclicMultiGraph::ExistProducerPathBasedMerger(vector<int> _order, vector<bool> _Sn, int _n, int _u, vector<int>& _path)
 {
 	int count = 0;
 	map<int, int> NewIndices;
@@ -364,7 +358,7 @@ bool DirectedAcyclicMultiGraph::ExistProducerPathBasedMerger(vector<int> _order,
 
 	vector<int> Path;
 	ProducerPathBasedMerger PPBM;
-	if (PPBM.Exist(SubgraphDirected, SubgraphCapacities, Path, _pathCapacity))
+	if (PPBM.Exist(SubgraphDirected, SubgraphCapacities, Path))
 	{
 		for (int i = 0; i < Path.size(); i++)
 			_path.push_back(ReversedIndices[Path[i]]);
@@ -488,8 +482,7 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 					if (InDegree == 1)
 					{
 						vector<int> Path;
-						int capacity = 0;
-						if (ExistProducerPathBasedMerger(order, Sn, n, u, Path, capacity))
+						if (ExistProducerPathBasedMerger(order, Sn, n, u, Path))
 						{
 							vector<int> MergedVertices;
 							// this function check if there are other nodes that could be merged due to a newly generated cycle
@@ -515,8 +508,7 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 						reverse(Path.begin(), Path.end());
 
 						set<int> MergedNodes;
-						int capacity = 0;
-						GetProducerCycleBasedMerger(order, Sn, n, u, Path, MergedNodes, capacity);
+						GetProducerCycleBasedMerger(order, Sn, n, u, Path, MergedNodes);
 						// performe a merger here
 						vector<int> MergedVertices;
 						for (set<int>::iterator itr = MergedNodes.begin(); itr != MergedNodes.end(); itr++)
@@ -570,7 +562,6 @@ vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndColla
 			vector<int> Path;
 			Path.push_back(itr->first);
 			Path.push_back(Terminal);
-			int capacity = capacities[Terminal] + capacities[itr->first] - itr->second;
 			vector<int> MergedVertices;
 			// this function check if there are other nodes that could be merged due to a newly generated cycle
 			GetMergedVertices(Path, MergedVertices);
