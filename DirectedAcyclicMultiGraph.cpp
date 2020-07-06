@@ -334,7 +334,7 @@ void DirectedAcyclicMultiGraph::GetProducerCycleBasedMerger(vector<int> _order, 
 		{
 			mergedNodes.clear();
 			for (int j = 0; j < _path.size(); j++)
-				mergedNodes.insert(_path[j]);
+				mergedNodes.insert(_order[_path[j]]);
 			for (int j = 0; j < cycles[i].size(); j++)
 			{
 				mergedNodes.insert(ReversedIndices[cycles[i][j]]);
@@ -499,7 +499,24 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 
 				if (delta[u] == 0)
 				{
-					int InDegree = nodeInDegree[order[u]];
+					set<int> InNodes;
+					for (map<int, int>::iterator itr = reversedEdges[order[u]].begin(); itr != reversedEdges[order[u]].end(); itr++)
+					{
+						if (Sn[ReversedOrder[itr->first]])
+							InNodes.insert(itr->first);
+					}
+					int InDegree = InNodes.size(); 
+					// recheck if there are extra input from the same edge 
+					if (InDegree == 1)
+					{
+						int count = reversedEdges[order[u]].count(*InNodes.begin());
+						if (count > 1)
+						{
+							if (collapsedPaths[*InNodes.begin()].find(order[u]) != collapsedPaths[*InNodes.begin()].end())
+								InDegree = count;
+						}
+
+					}
 					// path based merger
 					if (InDegree == 1)
 					{

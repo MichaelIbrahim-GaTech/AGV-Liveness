@@ -16,7 +16,9 @@ int main()
 	// AGV7.txt is the example depicted on Fig.4
 	// AGV8.txt is an example similar to the rev-prod-path-based-merger-check.pdf
 	// AGV9.txt is an example similar to the rev-prod-path-based-merger-check.pdf
-	string file = "AGV6.txt";
+	// AGV10.txt is the example depicted on Fig.5a
+	// AGV11.txt is the example depicted on Fig.5b
+	string file = "AGV11.txt";
 	AGV g(file);
 	if (g.IsLive())
 		cout << file << " is live" << endl;
