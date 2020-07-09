@@ -27,9 +27,29 @@ int main(int argc, char* argv[])
 		else
 			cout << file << " is not live" << endl;
 	}
+	else if (argc == 3)
+	{
+		if (string("-dag").compare(argv[1]) == 0)
+		{
+			string file = argv[2];
+			AGV g(file, true);
+			if (g.IsLive())
+				cout << file << " is live" << endl;
+			else
+				cout << file << " is not live" << endl;
+		}
+		else
+		{
+			cout << "You have entered " << argc << " arguments" << endl;
+			cout << "The program works as follow:" << endl;
+			cout << "main.exe file OR main.exe -dag file" << endl;
+		}
+	}
 	else
 	{
 		cout << "You have entered " << argc << " arguments" << endl;
-		cout << "You need to enter the file name" << endl;
+		cout << "The program works as follow:" << endl;
+		cout << "main.exe file OR main.exe -dag file" << endl;
 	}
+	return 0;
 }

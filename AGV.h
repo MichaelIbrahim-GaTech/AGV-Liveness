@@ -20,6 +20,7 @@ class AGV
 
 public:
 	AGV(string file);
+	AGV(string file, bool condensed);
 	bool IsLive();
 };
 
