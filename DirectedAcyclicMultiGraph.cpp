@@ -191,7 +191,7 @@ void DirectedAcyclicMultiGraph::CollapseNonMajorNodesPaths()
 			capacities.pop_back();
 			nodeInDegree.pop_back();
 		}
-		// 6- modify the edges according to the new order
+		// modify the edges according to the new order
 		for (int i = 0; i < nodes.size(); i++)
 		{
 			for (map<int, int>::iterator itr = Order.begin(); itr != Order.end(); itr++)
@@ -515,7 +515,6 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 							if (collapsedPaths[*InNodes.begin()].find(order[u]) != collapsedPaths[*InNodes.begin()].end())
 								InDegree = count;
 						}
-
 					}
 					// path based merger
 					if (InDegree == 1)

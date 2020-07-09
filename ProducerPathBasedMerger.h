@@ -3,6 +3,7 @@
 #include <map>
 #include <set>
 #include <stack>
+#include <algorithm>
 #include "KLObject.h"
 using namespace std;
 

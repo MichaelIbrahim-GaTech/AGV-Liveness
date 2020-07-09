@@ -4,7 +4,7 @@
 #include <iostream>
 #include "AGV.h"
 using namespace std;
-int main()
+int main(int argc, char* argv[])
 {
 	// AGV1.txt is the example depicted on Fig.1 of the paper
 	// AGV0.txt is the example depicted on Fig.1, with the modification of the edge 2->3 to 3->2
@@ -18,10 +18,18 @@ int main()
 	// AGV9.txt is an example similar to the rev-prod-path-based-merger-check.pdf
 	// AGV10.txt is the example depicted on Fig.5a
 	// AGV11.txt is the example depicted on Fig.5b
-	string file = "AGV11.txt";
-	AGV g(file);
-	if (g.IsLive())
-		cout << file << " is live" << endl;
+	if (argc == 2)
+	{
+		string file = argv[1];
+		AGV g(file);
+		if (g.IsLive())
+			cout << file << " is live" << endl;
+		else
+			cout << file << " is not live" << endl;
+	}
 	else
-		cout << file << " is not live" << endl;
+	{
+		cout << "You have entered " << argc << " arguments" << endl;
+		cout << "You need to enter the file name" << endl;
+	}
 }
