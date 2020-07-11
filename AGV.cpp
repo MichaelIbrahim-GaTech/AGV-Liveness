@@ -176,13 +176,16 @@ bool AGV::IsLive()
 
 	priority_queue<CondensedMultiGraph, vector<CondensedMultiGraph>, less<vector<CondensedMultiGraph>::value_type>> pqueue;
 	pqueue.push(C_Ghat);
-	stack<CondensedMultiGraph> STACK;
-	STACK.push(C_Ghat);
-	
+	stack<pair<CondensedMultiGraph, int>> STACK; //int is the level in the computation tree
+	STACK.push(make_pair(C_Ghat, 0));
+
 	// Implement Algorithm 3 here.
+	int i = 0;
+	int level;
 	while (!STACK.empty())
 	{
-		CondensedMultiGraph C = STACK.top();
+		CondensedMultiGraph C = STACK.top().first;
+		level = STACK.top().second;
 		STACK.pop();
 		if (C.isSingleChained())
 			return true;
@@ -191,21 +194,29 @@ bool AGV::IsLive()
 		if (G.TerminalNodesCapacityLessThanAllInEdges())
 		{
 			// Do Nothing
+			cout << "  nothing pushing to stack at level = " << level << endl;
 		}
 		else if (G.ExistAPathLeadingToNH(&Cd))
 		{
-			STACK.push(Cd);
+			STACK.push(make_pair(Cd, level + 1));
+			cout << "  pushing to stack because there is a path leading to n_h at level = " << level << endl;
 		}
 		else if (G.ExistAProducerMerger(&Cd))
 		{
-			STACK.push(Cd);
+			STACK.push(make_pair(Cd, level + 1));
+			cout << "  pushing to stack because there is a producer merger at level = " << level << endl;
 		}
 		else
 		{
 			vector<CondensedMultiGraph> Cds = G.PickATerminalNodeAndCollapseFeasiblePaths();
 			for (vector<CondensedMultiGraph>::iterator itr = Cds.begin(); itr != Cds.end(); itr++)
-				STACK.push(*itr);
+			{
+				STACK.push(make_pair(*itr, level + 1));
+				cout << "\t choice" << endl;
+			}
+			cout << "  pushing to stack else" << endl;
 		}
+		cout << "While cycle repeated " << ++i << " times, tree level = " << level << endl;
 	}
 	return false;
 }

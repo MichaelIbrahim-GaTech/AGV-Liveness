@@ -587,7 +587,27 @@ vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndColla
 	for (; Terminal < nodes.size(); Terminal++)
 	{
 		if (directed[Terminal].size() == 0)//this is a terminal node
-			break;
+		{
+			int count = 0;
+			for (multimap<int, int>::iterator itr = reversedEdges[Terminal].begin(); itr != reversedEdges[Terminal].end(); itr++)
+			{
+				if (itr->second <= capacities[Terminal])
+				{
+					count++;
+				}
+			}
+			if (count == 1)
+				break;
+		}
+	}
+	if (Terminal == nodes.size())
+	{
+		Terminal = 0;
+		for (; Terminal < nodes.size(); Terminal++)
+		{
+			if (directed[Terminal].size() == 0)//this is a terminal node
+				break;
+		}
 	}
 	// No Terminal Nodes (possibly something went wrong) in some place
 	if(Terminal == nodes.size()) 
