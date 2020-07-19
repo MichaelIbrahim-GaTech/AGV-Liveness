@@ -1,4 +1,5 @@
 #include "DirectedAcyclicMultiGraph.h"
+#include <queue>
 
 DirectedAcyclicMultiGraph::DirectedAcyclicMultiGraph(const DirectedAcyclicMultiGraph& _g)
 {
@@ -584,6 +585,7 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMerger(CondensedMultiGraph* _C)
 vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndCollapseFeasiblePaths()
 {
 	int Terminal = 0;
+	priority_queue<pair<int,int>, vector<pair<int, int>>, greater<pair<int, int>> > pq;
 	for (; Terminal < nodes.size(); Terminal++)
 	{
 		if (directed[Terminal].size() == 0)//this is a terminal node
@@ -596,21 +598,23 @@ vector<CondensedMultiGraph> DirectedAcyclicMultiGraph::PickATerminalNodeAndColla
 					count++;
 				}
 			}
+			pq.push(make_pair(count, Terminal));
 			if (count == 1)
 				break;
 		}
 	}
-	if (Terminal == nodes.size())
-	{
-		Terminal = 0;
-		for (; Terminal < nodes.size(); Terminal++)
-		{
-			if (directed[Terminal].size() == 0)//this is a terminal node
-				break;
-		}
-	}
+	Terminal = pq.top().second;
+	//if (Terminal == nodes.size())
+	//{
+	//	Terminal = 0;
+	//	for (; Terminal < nodes.size(); Terminal++)
+	//	{
+	//		if (directed[Terminal].size() == 0)//this is a terminal node
+	//			break;
+	//	}
+	//}
 	// No Terminal Nodes (possibly something went wrong) in some place
-	if(Terminal == nodes.size()) 
+	if(pq.empty()) 
 		return vector<CondensedMultiGraph>();
 	vector<CondensedMultiGraph> result;
 	for (multimap<int, int>::iterator itr = reversedEdges[Terminal].begin(); itr != reversedEdges[Terminal].end(); itr++)
