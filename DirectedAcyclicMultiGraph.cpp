@@ -707,3 +707,25 @@ void DirectedAcyclicMultiGraph::GetMergedVertices(vector<int> _path, vector<int>
 		}
 	}
 }
+
+
+bool DirectedAcyclicMultiGraph::IsTree()
+{
+	int n = nodes.size();
+	vector<set<int>> D;
+	for (int i = 0; i < n; i++)
+	{
+		D.push_back(set<int>());
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (multimap<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+		{
+			if (D[i].find(itr->first) != D[i].end())
+				return false;
+			D[i].insert(itr->first);
+			D[itr->first].insert(i);
+		}
+	}
+	return Graph::isTree(D);
+}

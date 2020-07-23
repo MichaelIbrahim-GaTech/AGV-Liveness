@@ -223,3 +223,107 @@ vector<int> Graph::topologicalSort(const vector<set<int>>& _d)
 
 	return order;
 }
+
+// A recursive function that uses visited[] and parent to 
+// detect cycle in subgraph reachable from vertex v. 
+bool Graph::isCyclicUtil(int v, bool visited[], int parent, const vector<set<int>>& _d)
+{
+	// Mark the current node as visited 
+	visited[v] = true;
+
+	// Recur for all the vertices adjacent to this vertex 
+	for (set<int>::iterator i = _d[v].begin(); i != _d[v].end(); ++i)
+	{
+		// If an adjacent is not visited, then recur for  
+		// that adjacent 
+		if (!visited[*i])
+		{
+			if (isCyclicUtil(*i, visited, v, _d))
+				return true;
+		}
+
+		// If an adjacent is visited and not parent of current 
+		// vertex, then there is a cycle. 
+		else if (*i != parent)
+			return true;
+	}
+	return false;
+}
+
+// Returns true if the graph is a tree, else false. 
+bool Graph::isTree(const vector<set<int>>& _d)
+{
+	// Mark all the vertices as not visited and not part of  
+	// recursion stack 
+	int n = _d.size();
+	bool* visited = new bool[n];
+	for (int i = 0; i < n; i++)
+		visited[i] = false;
+
+	// The call to isCyclicUtil serves multiple purposes. 
+	// It returns true if graph reachable from vertex 0  
+	// is cyclcic. It also marks all vertices reachable  
+	// from 0. 
+	if (isCyclicUtil(0, visited, -1, _d))
+		return false;
+
+	// If we find a vertex which is not reachable from 0  
+	// (not marked by isCyclicUtil(), then we return false 
+	for (int u = 0; u < n; u++)
+		if (!visited[u])
+			return false;
+
+	return true;
+}
+
+// Prints all paths from 's' to 'd' 
+void Graph::GetAllPaths(int s, const vector<set<int>>& _d, vector<vector<int>>& _paths)
+{
+	int n = _d.size();
+	// Mark all the vertices as not visited 
+	bool* visited = new bool[n];
+
+	// Create an array to store paths 
+	int* path = new int[n];
+	int path_index = 0; // Initialize path[] as empty 
+
+	// Initialize all vertices as not visited 
+	for (int i = 0; i < n; i++)
+		visited[i] = false;
+
+	// Call the recursive helper function to print all paths 
+	GetAllPathsUtil(s, visited, path, path_index, _d, _paths);
+}
+
+// A recursive function to print all paths from 'u' to 'd'. 
+// visited[] keeps track of vertices in current path. 
+// path[] stores actual vertices and path_index is current 
+// index in path[] 
+void Graph::GetAllPathsUtil(int u, bool visited[], int path[], int& path_index, const vector<set<int>>& _d, vector<vector<int>>& _paths)
+{
+	// Mark the current node and store it in path[] 
+	visited[u] = true;
+	path[path_index] = u;
+	path_index++;
+
+	// If current vertex is same as destination, then print 
+	// current path[] 
+	if (_d[u].empty())
+	{
+		vector<int> temp;
+		for (int i = 0; i < path_index; i++)
+			temp.push_back(path[i]);
+		_paths.push_back(temp);
+	}
+	else // If current vertex is not destination 
+	{
+		// Recur for all the vertices adjacent to current vertex 
+		for (set<int>::iterator i = _d[u].begin(); i != _d[u].end(); ++i)
+			if (!visited[*i])
+				GetAllPathsUtil(*i, visited, path, path_index, _d, _paths);
+	}
+
+	// Remove current vertex from path[] and mark it as unvisited 
+	path_index--;
+	visited[u] = false;
+}

@@ -9,6 +9,7 @@
 #include "MultiGraph.h"
 #include "CondensedMultiGraph.h"
 #include "DirectedAcyclicMultiGraph.h"
+#include "TreeLiveness.h"
 using namespace std;
 class AGV
 {

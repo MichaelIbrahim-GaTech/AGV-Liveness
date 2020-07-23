@@ -18,6 +18,8 @@ int main(int argc, char* argv[])
 	// AGV9.txt is an example similar to the rev-prod-path-based-merger-check.pdf
 	// AGV10.txt is the example depicted on Fig.5a
 	// AGV11.txt is the example depicted on Fig.5b
+
+	// CG_tree.txt example depicted on Fig.4 of the TAC paper.
 	if (argc == 2)
 	{
 		string file = argv[1];

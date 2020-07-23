@@ -3,17 +3,12 @@
 #include "CondensedMultiGraph.h"
 #include "ProducerPathBasedMerger.h"
 
-
 class DirectedAcyclicMultiGraph
 {
 	CondensedMultiGraph* C;
-	int nh;
 	vector<vector<int>> nodes;
-	vector<int> capacities;
 	vector<int> nodeInDegree;
-	vector<multimap<int, int>> directed;
 	vector<bool> major;
-	vector<multimap<int, int>> reversedEdges;
 	vector<map<int, vector<int>>> collapsedPaths;//from-to, vector of collapsed vertices
 	//Get the topological order of the nodes of the DAG
 	vector<int> TopologicalOrder();
@@ -24,6 +19,10 @@ class DirectedAcyclicMultiGraph
 	void CollapseNonMajorNodesPaths();
 	void GetMergedVertices(vector<int> _path, vector<int>& _mergedVertices);
 public:
+	int nh;
+	vector<int> capacities;
+	vector<multimap<int, int>> directed;
+	vector<multimap<int, int>> reversedEdges;
 	DirectedAcyclicMultiGraph() {}
 	DirectedAcyclicMultiGraph(const DirectedAcyclicMultiGraph&);
 	DirectedAcyclicMultiGraph(CondensedMultiGraph* _C);
@@ -31,5 +30,6 @@ public:
 	bool ExistAPathLeadingToNH(CondensedMultiGraph* _C);
 	bool ExistAProducerMerger(CondensedMultiGraph* _C);
 	vector<CondensedMultiGraph> PickATerminalNodeAndCollapseFeasiblePaths();
+	bool IsTree();
 };
 

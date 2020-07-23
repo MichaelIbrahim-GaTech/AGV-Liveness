@@ -191,30 +191,40 @@ bool AGV::IsLive()
 			return true;
 		DirectedAcyclicMultiGraph G = DirectedAcyclicMultiGraph(&C);
 		CondensedMultiGraph Cd;
-		if (G.TerminalNodesCapacityLessThanAllInEdges())
+		if (G.IsTree())
 		{
-			// Do Nothing
-			cout << "  nothing pushing to stack at level = " << level << endl;
-		}
-		else if (G.ExistAPathLeadingToNH(&Cd))
-		{
-			STACK.push(make_pair(Cd, level + 1));
-			cout << "  pushing to stack because there is a path leading to n_h at level = " << level << endl;
-		}
-		else if (G.ExistAProducerMerger(&Cd))
-		{
-			STACK.push(make_pair(Cd, level + 1));
-			cout << "  pushing to stack because there is a producer merger at level = " << level << endl;
+			cout << "Tree" << endl;
+			TreeLiveness TL = G;
+			if (TL.IsLive())
+				return true;
 		}
 		else
 		{
-			vector<CondensedMultiGraph> Cds = G.PickATerminalNodeAndCollapseFeasiblePaths();
-			for (vector<CondensedMultiGraph>::iterator itr = Cds.begin(); itr != Cds.end(); itr++)
+			if (G.TerminalNodesCapacityLessThanAllInEdges())
 			{
-				STACK.push(make_pair(*itr, level + 1));
-				cout << "\t choice" << endl;
+				// Do Nothing
+				cout << "  nothing pushing to stack at level = " << level << endl;
 			}
-			cout << "  pushing to stack else" << endl;
+			else if (G.ExistAPathLeadingToNH(&Cd))
+			{
+				STACK.push(make_pair(Cd, level + 1));
+				cout << "  pushing to stack because there is a path leading to n_h at level = " << level << endl;
+			}
+			else if (G.ExistAProducerMerger(&Cd))
+			{
+				STACK.push(make_pair(Cd, level + 1));
+				cout << "  pushing to stack because there is a producer merger at level = " << level << endl;
+			}
+			else
+			{
+				vector<CondensedMultiGraph> Cds = G.PickATerminalNodeAndCollapseFeasiblePaths();
+				for (vector<CondensedMultiGraph>::iterator itr = Cds.begin(); itr != Cds.end(); itr++)
+				{
+					STACK.push(make_pair(*itr, level + 1));
+					cout << "\t choice" << endl;
+				}
+				cout << "  pushing to stack else" << endl;
+			}
 		}
 		cout << "While cycle repeated " << ++i << " times, tree level = " << level << endl;
 	}
