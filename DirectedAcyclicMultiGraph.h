@@ -31,5 +31,6 @@ public:
 	bool ExistAProducerMerger(CondensedMultiGraph* _C);
 	vector<CondensedMultiGraph> PickATerminalNodeAndCollapseFeasiblePaths();
 	bool IsTree();
+	vector<int> Hash();
 };
 

@@ -4,12 +4,12 @@ class CondensedMultiGraph
 {
 	MultiGraph* Ghat;
 	int nh;
-	vector<vector<int>> vertices;
 	vector<int> capacities;
 	vector<map<int, int>> undirected;
 	vector<multimap<int, int>> directed;
 	vector<vector<int>> GetStronglyConnectedComponents();
 public:
+	vector<vector<int>> vertices;
 	// just in case we want to use priority queue instead of stack in Algorithm 3
 	friend bool operator < (const CondensedMultiGraph& lhs, const CondensedMultiGraph& rhs);
 	friend bool operator > (const CondensedMultiGraph& lhs, const CondensedMultiGraph& rhs);

@@ -19,6 +19,9 @@ class AGV
 	MultiGraph Ghat;
 	//CondensedMultiGraph C_Ghat;
 
+	vector<vector<vector<int>>> ExploredConfigurations;
+	bool ExploredBefore(int _nodes, vector<int> _hash);
+
 public:
 	AGV(string file);
 	AGV(string file, bool condensed);

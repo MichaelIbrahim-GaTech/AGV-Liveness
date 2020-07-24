@@ -170,6 +170,32 @@ AGV::AGV(string fileName, bool condensed)
 		cout << "Problem in adding vehicules" << endl;
 }
 
+
+bool AGV::ExploredBefore(int _nodes, vector<int> _hash)
+{
+	if (ExploredConfigurations.empty())
+	{
+		for (int i = 0; i < _nodes; i++)
+			ExploredConfigurations.push_back(vector<vector<int>>());
+		return false;
+	}
+
+	for (int i = 0; i < ExploredConfigurations[_nodes].size(); i++)
+	{
+		if (ExploredConfigurations[_nodes][i].size() == _hash.size())
+		{
+			if (std::equal(ExploredConfigurations[_nodes][i].begin(), ExploredConfigurations[_nodes][i].end(), _hash.begin()))
+			{
+				return true;
+			}
+		}
+	}
+
+	ExploredConfigurations[_nodes].push_back(_hash);
+
+	return false;
+}
+
 bool AGV::IsLive()
 {
 	CondensedMultiGraph C_Ghat(&Ghat);
@@ -190,6 +216,15 @@ bool AGV::IsLive()
 		if (C.isSingleChained())
 			return true;
 		DirectedAcyclicMultiGraph G = DirectedAcyclicMultiGraph(&C);
+
+		//check whether this graph has been explored before or not.
+		vector<int> hash = G.Hash();
+		if (ExploredBefore(G.capacities.size(), hash))
+		{
+			cout << "Graph explored before" << endl;
+			continue;
+		}
+
 		CondensedMultiGraph Cd;
 		if (G.IsTree())
 		{

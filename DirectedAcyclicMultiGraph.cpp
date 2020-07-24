@@ -729,3 +729,41 @@ bool DirectedAcyclicMultiGraph::IsTree()
 	}
 	return Graph::isTree(D);
 }
+
+vector<int> DirectedAcyclicMultiGraph::Hash()
+{
+	vector<vector<int>> Vertices;
+	for (int i = 0; i < nodes.size(); i++)
+	{
+		vector<int> temp;
+		for (int j = 0; j < nodes[i].size(); j++)
+		{
+			for (int k = 0; k < C->vertices[nodes[i][j]].size(); k++)
+			{
+				temp.push_back(C->vertices[nodes[i][j]][k]);
+			}
+		}
+		sort(temp.begin(), temp.end());
+		Vertices.push_back(temp);
+	}
+
+	vector<pair<int, int> > vp;
+	for (int i = 0; i < nodes.size(); i++) 
+	{
+		vp.push_back(make_pair(Vertices[i][0], i));
+	}
+	sort(vp.begin(), vp.end());
+
+	vector<int> hash(Vertices[vp[0].second]);
+
+	for (int i = 1; i < nodes.size(); i++)
+	{
+		hash.push_back(-1);
+		for (int j = 0; j < Vertices[vp[i].second].size(); j++)
+		{
+			hash.push_back(Vertices[vp[i].second][j]);
+		}
+	}
+
+	return hash;
+}
