@@ -2,6 +2,8 @@
 #include "MultiGraph.h"
 #include "CondensedMultiGraph.h"
 #include "ProducerPathBasedMerger.h"
+#include "GraphCycles.h"
+#include "Cycle.h"
 
 class DirectedAcyclicMultiGraph
 {
@@ -18,6 +20,8 @@ class DirectedAcyclicMultiGraph
 	//This function collapse non-major nodes
 	void CollapseNonMajorNodesPaths();
 	void GetMergedVertices(vector<int> _path, vector<int>& _mergedVertices);
+
+	bool SubgraphContainsProducerCycle(vector<int> subgraph, CondensedMultiGraph* _C);
 public:
 	int nh;
 	vector<int> capacities;
@@ -29,6 +33,7 @@ public:
 	bool TerminalNodesCapacityLessThanAllInEdges();
 	bool ExistAPathLeadingToNH(CondensedMultiGraph* _C);
 	bool ExistAProducerMerger(CondensedMultiGraph* _C);
+	bool ExistACycle(CondensedMultiGraph* _C);
 	vector<CondensedMultiGraph> PickATerminalNodeAndCollapseFeasiblePaths();
 	bool IsTree();
 	vector<int> Hash();

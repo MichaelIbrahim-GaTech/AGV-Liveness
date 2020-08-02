@@ -14,10 +14,10 @@ CondensedMultiGraph::CondensedMultiGraph(const CondensedMultiGraph& _g)
 {
 	Ghat = _g.Ghat;
 	nh = _g.nh;
+	vertices = _g.vertices;
+	capacities = _g.capacities;
 	for (int i = 0; i < _g.vertices.size(); i++)
 	{
-		vertices.push_back(_g.vertices[i]);
-		capacities.push_back(_g.capacities[i]);
 		undirected.push_back(_g.undirected[i]);
 		directed.push_back(_g.directed[i]);
 	}

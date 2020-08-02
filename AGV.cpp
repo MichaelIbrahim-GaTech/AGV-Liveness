@@ -173,6 +173,7 @@ AGV::AGV(string fileName, bool condensed)
 
 bool AGV::ExploredBefore(int _nodes, vector<int> _hash)
 {
+	// This condition will be executed only once when the graph is checked for the first time
 	if (ExploredConfigurations.empty())
 	{
 		for (int i = 0; i < _nodes; i++)
@@ -249,6 +250,11 @@ bool AGV::IsLive()
 			{
 				STACK.push(make_pair(Cd, level + 1));
 				cout << "  pushing to stack because there is a producer merger at level = " << level << endl;
+			}
+			else if (G.ExistACycle(&Cd))//This function is the one described in Notes.pdf
+			{
+				STACK.push(make_pair(Cd, level + 1));
+				cout << "  pushing to stack because there is a cycle at level = " << level << endl;
 			}
 			else
 			{

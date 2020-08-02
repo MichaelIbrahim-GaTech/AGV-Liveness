@@ -764,6 +764,179 @@ vector<int> DirectedAcyclicMultiGraph::Hash()
 			hash.push_back(Vertices[vp[i].second][j]);
 		}
 	}
-
 	return hash;
+}
+
+bool DirectedAcyclicMultiGraph::SubgraphContainsProducerCycle(vector<int> subgraph, CondensedMultiGraph* _C)
+{
+
+	// Get all the cycles for that subgraph
+	int* aObjects1 = new int[subgraph.size()];
+	for (int j = 0; j < subgraph.size(); j++)
+		aObjects1[j] = subgraph[j];
+	vector<int> edges;
+	for (int j = 0; j < subgraph.size(); j++)
+	{
+		for (int k = j + 1; k < subgraph.size(); k++)
+		{
+			if (reversedEdges[subgraph[j]].count(subgraph[k]) + directed[subgraph[j]].count(subgraph[k]) > 0)
+			{
+				edges.push_back(j);
+				edges.push_back(k);
+			}
+		}
+	}
+	size_t* aEdges1 = new size_t[edges.size()];
+	for (int j = 0; j < edges.size(); j++)
+		aEdges1[j] = edges[j];
+	GraphCycles::Graph<int> g(aObjects1, subgraph.size(), aEdges1, edges.size() / 2);
+	vector<vector<int>> allCycles = g.computeAllCycles();
+
+	for (int c = 0; c < allCycles.size(); c++)
+	{
+		allCycles[c].pop_back();
+		vector<map<int, int>> _directed;
+		for (int i = 0; i < allCycles[c].size(); i++)
+			_directed.push_back(map<int, int>());
+		for (int i = 0; i < allCycles[c].size(); i++)
+		{
+			for (multimap<int, int>::iterator itr = directed[allCycles[c][i]].begin(); itr != directed[allCycles[c][i]].end(); itr++)
+			{
+				int prev = (allCycles[c].size() + i - 1) % allCycles[c].size();
+				int next = (i + 1) % allCycles[c].size();
+				if (itr->first == allCycles[c][prev])
+				{
+					if (_directed[i].find(prev) == _directed[i].end())
+					{
+						_directed[i].insert(pair<int, int>(prev, itr->second));
+					}
+					else
+					{
+						if (itr->second < _directed[i][prev])
+							_directed[i][prev] = itr->second;
+					}
+				}
+				else if (itr->first == allCycles[c][next])
+				{
+					if (_directed[i].find(next) == _directed[i].end())
+					{
+						_directed[i].insert(pair<int, int>(next, itr->second));
+					}
+					else
+					{
+						if (itr->second < _directed[i][next])
+							_directed[i][next] = itr->second;
+					}
+				}
+			}
+		}
+		vector<int> _capacities;
+		for (int i = 0; i < allCycles[c].size(); i++)
+			_capacities.push_back(capacities[allCycles[c][i]]);
+		Cycle cycle(_capacities, _directed);
+		if (cycle.IsProducer())
+		{
+			vector<int> MergedVertices;
+			for (int itr = 0; itr < allCycles[c].size(); itr++)
+			{
+				for (int i = 0; i < nodes[allCycles[c][itr]].size(); i++)
+				{
+					MergedVertices.push_back(nodes[allCycles[c][itr]][i]);
+				}
+			}
+			// Add the merged vertices from collapsed paths
+			for (int i = 0; i < allCycles[c].size(); i++)
+			{
+				for (int j = 0; j < allCycles[c].size(); j++)
+				{
+					if (collapsedPaths[allCycles[c][i]].find(allCycles[c][j]) != collapsedPaths[allCycles[c][i]].end())
+					{
+						vector<int> ToAdd = collapsedPaths[allCycles[c][i]][allCycles[c][j]];
+						for (int k = 0; k < ToAdd.size(); k++)
+							MergedVertices.push_back(ToAdd[k]);
+					}
+				}
+			}
+			*_C = *C;
+			_C->MacroMerger(MergedVertices);
+			return true;
+		}
+	}
+	return false;
+}
+
+bool DirectedAcyclicMultiGraph::ExistACycle(CondensedMultiGraph* _C)
+{
+	int n = nodes.size();
+	vector<set<int>> D;
+	for (int i = 0; i < n; i++)
+	{
+		D.push_back(set<int>());
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (multimap<int, int>::iterator itr = directed[i].begin(); itr != directed[i].end(); itr++)
+		{
+			D[i].insert(itr->first);
+			D[itr->first].insert(i);
+		}
+	}
+	vector<pair<int, int>> bridges = Graph::bridge(D);
+	vector<int> BridgesIncidence(n, 0);
+	for (int i = 0; i < bridges.size(); i++)
+	{
+		int count = reversedEdges[bridges[i].first].count(bridges[i].second)
+			+ reversedEdges[bridges[i].second].count(bridges[i].first);
+		if (count == 1)
+		{
+			D[bridges[i].first].erase(bridges[i].second);
+			D[bridges[i].second].erase(bridges[i].first);
+			BridgesIncidence[bridges[i].first]++;
+			BridgesIncidence[bridges[i].second]++;
+		}
+	}
+	vector<vector<int>> subgraphs = Graph::GetStronglyConnectedComponents(D);
+	vector<int> SubgraphsBridgesIncidence(subgraphs.size(), 0);
+	for (int i = 0; i < subgraphs.size(); i++)
+	{
+		for (int j = 0; j < subgraphs[i].size(); j++)
+		{
+			SubgraphsBridgesIncidence[i] += BridgesIncidence[subgraphs[i][j]];
+		}
+	}
+	// iterate over the leaf subgraph that consist of a single nodes
+	// if the edge is going to the leaf perform a merger
+	for (int i = 0; i < subgraphs.size(); i++)
+	{
+		if ((subgraphs[i].size() == 1) && (SubgraphsBridgesIncidence[i] == 1))
+		{
+			if (directed[subgraphs[i][0]].empty())//the edge is going into the node nothing is out of it
+			{
+				// perform a merger
+				vector<int> Path;
+				Path.push_back(reversedEdges[subgraphs[i][0]].begin()->first);
+				Path.push_back(subgraphs[i][0]);
+				vector<int> MergedVertices;
+				// this function check if there are other nodes that could be merged due to a newly generated cycle
+				GetMergedVertices(Path, MergedVertices);
+				// performe a merger here
+				CondensedMultiGraph _C = *C;
+				_C.MacroMerger(MergedVertices);
+				return true;
+			}
+		}
+	}
+	// iterate over the leaf subgraph that consist of more than one node
+	// if any of the cycles of this subgraph 
+	for (int i = 0; i < subgraphs.size(); i++)
+	{
+		if ((subgraphs[i].size() > 1))// && (SubgraphsBridgesIncidence[i] == 1))
+		{
+			if (SubgraphContainsProducerCycle(subgraphs[i], _C))
+				return true;
+		}
+	}
+
+	//
+	return false;
 }
