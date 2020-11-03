@@ -5,6 +5,10 @@
 #include "GraphCycles.h"
 #include "Cycle.h"
 
+#include "InTree.h"
+#include "Algorithm2.h"
+#include "Algorithm3.h"
+
 class DirectedAcyclicMultiGraph
 {
 	CondensedMultiGraph* C;
@@ -12,6 +16,7 @@ class DirectedAcyclicMultiGraph
 	vector<int> nodeInDegree;
 	vector<bool> major;
 	vector<map<int, vector<int>>> collapsedPaths;//from-to, vector of collapsed vertices
+	vector<map<int, vector<int>>> TNEs; // to keep track of all feasible source merging T(n,e)
 	//Get the topological order of the nodes of the DAG
 	vector<int> TopologicalOrder();
 	vector<bool> GetSn(vector<int> order, int n);
@@ -33,9 +38,21 @@ public:
 	bool TerminalNodesCapacityLessThanAllInEdges();
 	bool ExistAPathLeadingToNH(CondensedMultiGraph* _C);
 	bool ExistAProducerMerger(CondensedMultiGraph* _C);
-	bool ExistACycle(CondensedMultiGraph* _C);
+	bool ExistAProducerMergerEdge(CondensedMultiGraph* _C);
+	bool ExistACycleOld(CondensedMultiGraph* _C);
+	bool ExistATerminalNodeWithASingleFeasiblePath(CondensedMultiGraph* _C, bool& _terminate);
 	vector<CondensedMultiGraph> PickATerminalNodeAndCollapseFeasiblePaths();
 	bool IsTree();
 	vector<int> Hash();
+
+	//call Algorithm2
+	bool IsThereATerminalNodeThatDoesntHaveMaximalCapacity(CondensedMultiGraph* _C);
+	//call Algorithm3
+	bool ExistAMeregerSequenceForATerminalNode(CondensedMultiGraph* _C, bool& _terminate);
+	//implements Algorithm4 in NAHS paper
+	void Algorithm4_NAHS(CondensedMultiGraph* _C);
+
+
+	vector<int> GetArticulationPoints();
 };
 

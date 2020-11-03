@@ -206,7 +206,7 @@ bool AGV::IsLive()
 	stack<pair<CondensedMultiGraph, int>> STACK; //int is the level in the computation tree
 	STACK.push(make_pair(C_Ghat, 0));
 
-	// Implement Algorithm 3 here.
+	// Implement main Algorithm here.
 	int i = 0;
 	int level;
 	while (!STACK.empty())
@@ -218,15 +218,7 @@ bool AGV::IsLive()
 			return true;
 		DirectedAcyclicMultiGraph G = DirectedAcyclicMultiGraph(&C);
 
-		//check whether this graph has been explored before or not.
-		vector<int> hash = G.Hash();
-		if (ExploredBefore(G.capacities.size(), hash))
-		{
-			cout << "Graph explored before" << endl;
-			continue;
-		}
 
-		CondensedMultiGraph Cd;
 		if (G.IsTree())
 		{
 			cout << "Tree" << endl;
@@ -236,35 +228,50 @@ bool AGV::IsLive()
 		}
 		else
 		{
+			CondensedMultiGraph Cd;
+			bool terminate = false;
 			if (G.TerminalNodesCapacityLessThanAllInEdges())
 			{
 				// Do Nothing
 				cout << "  nothing pushing to stack at level = " << level << endl;
+			}
+			else if (G.ExistAProducerMergerEdge(&Cd))
+			{
+				STACK.push(make_pair(Cd, level + 1));
+				cout << "  pushing to stack because there is a producer merger at level = " << level << endl;
 			}
 			else if (G.ExistAPathLeadingToNH(&Cd))
 			{
 				STACK.push(make_pair(Cd, level + 1));
 				cout << "  pushing to stack because there is a path leading to n_h at level = " << level << endl;
 			}
-			else if (G.ExistAProducerMerger(&Cd))
-			{
-				STACK.push(make_pair(Cd, level + 1));
-				cout << "  pushing to stack because there is a producer merger at level = " << level << endl;
-			}
-			else if (G.ExistACycle(&Cd))//This function is the one described in Notes.pdf
-			{
-				STACK.push(make_pair(Cd, level + 1));
-				cout << "  pushing to stack because there is a cycle at level = " << level << endl;
-			}
 			else
 			{
-				vector<CondensedMultiGraph> Cds = G.PickATerminalNodeAndCollapseFeasiblePaths();
-				for (vector<CondensedMultiGraph>::iterator itr = Cds.begin(); itr != Cds.end(); itr++)
+				vector<int> art = G.GetArticulationPoints();
+				if (art.size() == 0) // run algorithm 4 without constructing the tree
 				{
-					STACK.push(make_pair(*itr, level + 1));
-					cout << "\t choice" << endl;
+					Algorithm5 alg5;
+					if (alg5.OneStep(G, &Cd))
+					{
+						STACK.push(make_pair(Cd, level + 1));
+						//cout << "  pushing to stack due to Algorithm 5 at level = " << level << endl;
+					}
+					else
+					{
+						// Do Nothing (Terminate)
+						cout << "  nothing pushing to stack due to Algorithm 5 at level = " << level << endl;
+					}
 				}
-				cout << "  pushing to stack else" << endl;
+				else // construct the block-cutpoint tree and run algorithm 5
+				{
+					vector<CondensedMultiGraph> Cds = G.PickATerminalNodeAndCollapseFeasiblePaths();
+					for (vector<CondensedMultiGraph>::iterator itr = Cds.begin(); itr != Cds.end(); itr++)
+					{
+						STACK.push(make_pair(*itr, level + 1));
+						cout << "\t choice" << endl;
+					}
+					cout << "  pushing to stack else" << endl;
+				}
 			}
 		}
 		cout << "While cycle repeated " << ++i << " times, tree level = " << level << endl;

@@ -17,11 +17,13 @@ class Graph
 	static void topologicalSortUtil(int v, bool visited[], stack<int>& Stack, const vector<set<int>>& _d);
 	static bool isCyclicUtil(int v, bool visited[], int parent, const vector<set<int>>& _d);
 	static void GetAllPathsUtil(int u, bool visited[], int path[], int& path_index, const vector<set<int>>& _d, vector<vector<int>>& _paths);
+	static void APUtil(int u, bool visited[], int disc[], int low[], int parent[], bool ap[], const vector<set<int>>& _d);
 public:
 	static vector<vector<int>> GetStronglyConnectedComponents(const vector<set<int>>& _d);
 	static vector<pair<int, int>> bridge(const vector<set<int>>& _d);
 	static vector<int> topologicalSort(const vector<set<int>>& _d);
 	static bool isTree(const vector<set<int>>& _d);
 	static void GetAllPaths(int s, const vector<set<int>>& _d, vector<vector<int>>& _paths);
+	static vector<int> AP(const vector<set<int>>& _d);
 };
 
