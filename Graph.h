@@ -24,6 +24,6 @@ public:
 	static vector<int> topologicalSort(const vector<set<int>>& _d);
 	static bool isTree(const vector<set<int>>& _d);
 	static void GetAllPaths(int s, const vector<set<int>>& _d, vector<vector<int>>& _paths);
-	static vector<int> AP(const vector<set<int>>& _d);
+	static vector<int> AP(const vector<set<int>>& _d, vector<int>& Level);
 };
 

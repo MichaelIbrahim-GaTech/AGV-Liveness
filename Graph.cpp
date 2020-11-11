@@ -392,7 +392,7 @@ void Graph::APUtil(int u, bool visited[], int disc[], int low[], int parent[], b
 }
 
 // The function to do DFS traversal. It uses recursive function APUtil() 
-vector<int> Graph::AP(const vector<set<int>>& _d)
+vector<int> Graph::AP(const vector<set<int>>& _d, vector<int>& Level)
 {
 	int n = _d.size();
 	// Mark all the vertices as not visited 
@@ -416,11 +416,15 @@ vector<int> Graph::AP(const vector<set<int>>& _d)
 		if (visited[i] == false)
 			APUtil(i, visited, disc, low, parent, ap, _d);
 
+	for (int i = 0; i < n; i++)
+		Level.push_back(low[i]);
+
 	// Now ap[] contains articulation points, print them 
 	vector<int> result;
 	for (int i = 0; i < n; i++)
 		if (ap[i] == true)
 			result.push_back(i);
+
 
 	return result;
 }

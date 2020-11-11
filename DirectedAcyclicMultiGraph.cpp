@@ -456,6 +456,32 @@ bool DirectedAcyclicMultiGraph::ExistAPathLeadingToNH(CondensedMultiGraph* _C)
 	}
 }
 
+
+// This function is used by Case I of Algorithm 6, it performs a merger if it is feasible.
+bool DirectedAcyclicMultiGraph::ExistAFeasibleMergerEdge(int from, int to, CondensedMultiGraph* _C)
+{
+	for (multimap<int, int>::iterator itr = directed[from].begin(); itr != directed[from].end(); itr++)
+	{
+		if (itr->first == to)
+		{
+			if (capacities[itr->first] >= itr->second)//feasible merger
+			{
+				vector<int> Path;
+				Path.push_back(from);
+				Path.push_back(to);
+				vector<int> MergedVertices;
+				// this function check if there are other nodes that could be merged due to a newly generated cycle
+				GetMergedVertices(Path, MergedVertices);
+				// performe a merger here
+				*_C = *C;
+				_C->MacroMerger(MergedVertices);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 bool DirectedAcyclicMultiGraph::ExistAProducerMergerEdge(CondensedMultiGraph* _C)
 {
 	for (int i = 0; i < directed.size(); i++)
@@ -464,7 +490,20 @@ bool DirectedAcyclicMultiGraph::ExistAProducerMergerEdge(CondensedMultiGraph* _C
 		{
 			if (capacities[itr->first] >= itr->second)//feasible merger
 			{
-				if (capacities[i] >= itr->second) //path-based producer merger
+				if (i == nh) // feasible edge out of nh is a producer merger
+				{
+					vector<int> Path;
+					Path.push_back(i);
+					Path.push_back(itr->first);
+					vector<int> MergedVertices;
+					// this function check if there are other nodes that could be merged due to a newly generated cycle
+					GetMergedVertices(Path, MergedVertices);
+					// performe a merger here
+					*_C = *C;
+					_C->MacroMerger(MergedVertices);
+					return true;
+				}
+				else if (capacities[i] >= itr->second) //path-based producer merger
 				{
 					vector<int> Path;
 					Path.push_back(i);
@@ -1188,79 +1227,6 @@ bool DirectedAcyclicMultiGraph::ExistAMeregerSequenceForATerminalNode(CondensedM
 	return false;
 }
 
-
-bool DirectedAcyclicMultiGraph::ExistATerminalNodeWithASingleFeasiblePath(CondensedMultiGraph* _C, bool& _terminate)
-{
-	_terminate = false;
-
-	int Terminal = 0;
-	priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>> > pq;
-	for (; Terminal < nodes.size(); Terminal++)
-	{
-		if (directed[Terminal].size() == 0)//this is a terminal node
-		{
-			int count = 0;
-			for (multimap<int, int>::iterator itr = reversedEdges[Terminal].begin(); itr != reversedEdges[Terminal].end(); itr++)
-			{
-				if (itr->second <= capacities[Terminal])
-				{
-					count++;
-				}
-			}
-			pq.push(make_pair(count, Terminal));
-			if (count == 1)
-				break;
-		}
-	}
-	// No Terminal Nodes
-	if (pq.empty())
-		return false;
-
-	// Iterate over terminal nodes and check if any of them has a single feasible path
-	while (!pq.empty())
-	{
-		Terminal = pq.top().second;
-		pq.pop();
-		int count = 0;
-		int from = -1;
-		for (multimap<int, int>::iterator itr = reversedEdges[Terminal].begin(); itr != reversedEdges[Terminal].end(); itr++)
-		{
-			// This need to be modfied with the new check
-			if (itr->second <= capacities[Terminal])
-			{
-				from = itr->first;
-				count++;
-			}
-		}
-
-
-		if (count == 0)
-		{
-			_terminate = true;
-			return true;
-		}
-		else if (count == 1)
-		{
-			//perform a merger
-			vector<int> Path;
-			Path.push_back(from);
-			Path.push_back(Terminal);
-			vector<int> MergedVertices;
-			// this function check if there are other nodes that could be merged due to a newly generated cycle
-			GetMergedVertices(Path, MergedVertices);
-			// performe a merger here
-			*_C = *C;
-			_C->MacroMerger(MergedVertices);
-
-			return true;
-		}
-	}
-
-	return false;
-
-}
-
-
 void DirectedAcyclicMultiGraph::Algorithm4_NAHS(CondensedMultiGraph* _C)
 {
 	vector<int> L;
@@ -1377,7 +1343,7 @@ void DirectedAcyclicMultiGraph::Algorithm4_NAHS(CondensedMultiGraph* _C)
 	}
 }
 
-vector<int> DirectedAcyclicMultiGraph::GetArticulationPoints()
+vector<int> DirectedAcyclicMultiGraph::GetArticulationPoints(vector<int>& Level)
 {
 	int n = nodes.size();
 	vector<set<int>> D;
@@ -1393,5 +1359,29 @@ vector<int> DirectedAcyclicMultiGraph::GetArticulationPoints()
 			D[itr->first].insert(i);
 		}
 	}
-	return Graph::AP(D);
+	vector<int> AP = Graph::AP(D, Level);
+	return AP;
+}
+
+
+int DirectedAcyclicMultiGraph::GetNodeFromVertexNumber(int _vertex)
+{
+	for (int i = 0; i < C->vertices.size(); i++)
+	{
+		for (int j = 0; j < C->vertices[i].size(); j++)
+		{
+			if (C->vertices[i][j] == _vertex)
+			{
+				for (int n = 0; n < nodes.size(); n++)
+				{
+					for (int k = 0; k < nodes[n].size(); k++)
+					{
+						if (nodes[n][k] == i)
+							return n;
+					}
+				}
+			}
+		}
+	}
+	return false;
 }

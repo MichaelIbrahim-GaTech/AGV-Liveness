@@ -11,6 +11,8 @@
 #include "DirectedAcyclicMultiGraph.h"
 #include "TreeLiveness.h"
 #include "Algorithm5.h"
+#include "BlockCutpointTree.h"
+#include "Simulation.h"
 
 using namespace std;
 class AGV
