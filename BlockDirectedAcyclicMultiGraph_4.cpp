@@ -123,8 +123,9 @@ bool BlockDirectedAcyclicMultiGraph_4::IsThereATerminalNodeThatDoesntHaveMaximal
 	return false;
 }
 
-bool BlockDirectedAcyclicMultiGraph_4::ExistAMeregerSequenceForATerminalNode(CondensedMultiGraph* _C, bool& _terminate, bool& _simulate)
+bool BlockDirectedAcyclicMultiGraph_4::ExistAMeregerSequenceForATerminalNode(CondensedMultiGraph* _C, bool& _terminate, bool& _simulate, bool& _parentFault)
 {
+	_parentFault = false;
 	// We keep track with all feasible T(n,e) by the vector of maps TNEs
 	TNEs.clear();
 	for (int i = 0; i < used.size(); i++)
@@ -229,6 +230,8 @@ bool BlockDirectedAcyclicMultiGraph_4::ExistAMeregerSequenceForATerminalNode(Con
 			}
 			if (count == 0)
 			{
+				if (Terminal == parentAP)
+					_parentFault = true;
 				_terminate = true;
 				return true;
 			}

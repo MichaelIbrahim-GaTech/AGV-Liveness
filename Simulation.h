@@ -16,8 +16,11 @@ class Simulation
 	int originalVertex;
 	int originalNodeCapacity;
 	CondensedMultiGraph originalC;
+	set<int> subTreeVertices;
+	bool subTreeVerticesUsed;
 public:
-	Simulation(CondensedMultiGraph C, int vertex, int nodeCapacity);
+	//Simulation(CondensedMultiGraph C, int vertex, int nodeCapacity);
+	Simulation(CondensedMultiGraph C, int vertex, int nodeCapacity, set<int> _subTreeVertices);
 	bool simulate(CondensedMultiGraph& C);
 };
 

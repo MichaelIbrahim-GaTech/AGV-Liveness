@@ -310,29 +310,43 @@ BlockCutpointTree::BlockCutpointTree(DirectedAcyclicMultiGraph* _U, vector<int> 
 		ConsideredBlocks.insert(i);
 }
 
-BlockCutpointTree::BlockCutpointTree(DirectedAcyclicMultiGraph* _U, vector<int> art, vector<int> level, int _subtree)
+//BlockCutpointTree::BlockCutpointTree(DirectedAcyclicMultiGraph* _U, vector<int> art, vector<int> level, int _subtree)
+//	:BlockCutpointTree(_U, art, level)
+//{
+//	ConsideredBlocks.clear();
+//	//find first occurence of the parent ap called _subtree
+//	for (int i = 0; i < Blocks.size(); i++)
+//	{
+//		if (Blocks[i].find(_subtree) != Blocks[i].end())
+//		{
+//			stack<int> Explore;
+//			Explore.push(i);
+//			while (!Explore.empty())
+//			{
+//				int block = Explore.top();
+//				Explore.pop();
+//				ConsideredBlocks.insert(block);
+//				for (int itr = 0; itr < Children[block].size(); itr++)
+//					Explore.push(Children[block][itr]);
+//			}
+//			return;
+//		}
+//	}
+//
+//}
+
+BlockCutpointTree::BlockCutpointTree(DirectedAcyclicMultiGraph* _U, vector<int> art, vector<int> level, int _subtree, set<int> _subtreeNodes)
 	:BlockCutpointTree(_U, art, level)
 {
 	ConsideredBlocks.clear();
-	//find first occurence of the parent ap called _subtree
 	for (int i = 0; i < Blocks.size(); i++)
 	{
-		if (Blocks[i].find(_subtree) != Blocks[i].end())
-		{
-			stack<int> Explore;
-			Explore.push(i);
-			while (!Explore.empty())
-			{
-				int block = Explore.top();
-				Explore.pop();
-				ConsideredBlocks.insert(block);
-				for (int itr = 0; itr < Children[block].size(); itr++)
-					Explore.push(Children[block][itr]);
-			}
-			return;
-		}
+		set<int> intersect;
+		set_intersection(Blocks[i].begin(), Blocks[i].end(), _subtreeNodes.begin(), _subtreeNodes.end(),
+			std::inserter(intersect, intersect.begin()));
+		if (intersect.size() == Blocks[i].size())
+			ConsideredBlocks.insert(i);
 	}
-
 }
 
 int BlockCutpointTree::GetNextBlockToProcess()
@@ -372,4 +386,21 @@ int BlockCutpointTree::GetNextBlockToProcess()
 		}
 	}
 	return -1;
+}
+
+set<int> BlockCutpointTree::GetSubTreeNodes(int block)
+{
+	set<int> nodes;
+	stack<int> Explore;
+	Explore.push(block);
+	while (!Explore.empty())
+	{
+		int b = Explore.top();
+		Explore.pop();
+		for (set<int>::iterator itr = Blocks[b].begin(); itr != Blocks[b].end(); itr++)
+			nodes.insert(*itr);
+		for (int i = 0; i < Children[b].size(); i++)
+			Explore.push(Children[b][i]);
+	}
+	return nodes;
 }

@@ -101,17 +101,28 @@ bool Algorithm5::OneStep(BlockDirectedAcyclicMultiGraph_4 U, CondensedMultiGraph
 {
 	// IN this implementation we don't check for the first 2 if conditions, because we already did at AGV::IsLive function
 	bool terminate = false;
+	bool parentFault = false;
 	if (U.IsThereATerminalNodeThatDoesntHaveMaximalCapacity(Cd))
 	{
 		cout << "Algorithm 5 - tree macro meger" << endl;
 		return true;
 	}
-	else if (U.ExistAMeregerSequenceForATerminalNode(Cd, terminate, _simulate))
+	else if (U.ExistAMeregerSequenceForATerminalNode(Cd, terminate, _simulate, parentFault))
 	{
 		if (terminate)
 		{
-			cout << "Algorithm 5 - terminate" << endl;
-			return false;
+			if (parentFault)
+			{
+				cout << "Algorithm 5 - simulate" << endl;
+				_simulate = true;
+				return false;
+			}
+			else
+			{
+				cout << "Algorithm 5 - terminate" << endl;
+				_simulate = false;
+				return false;
+			}
 		}
 		cout << "Algorithm 5 - single edge basic merger" << endl;
 		return true;

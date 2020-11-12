@@ -1,11 +1,20 @@
 #include "Simulation.h"
 
+//Simulation::Simulation(CondensedMultiGraph _C, int _vertex, int _nodeCapacity)
+//{
+//	originalVertex = _vertex;
+//	originalNodeCapacity = _nodeCapacity;
+//	originalC = _C;
+//	subTreeVerticesUsed = false;
+//}
 
-Simulation::Simulation(CondensedMultiGraph _C, int _vertex, int _nodeCapacity)
+Simulation::Simulation(CondensedMultiGraph _C, int _vertex, int _nodeCapacity, set<int> _subTreeVertices)
 {
 	originalVertex = _vertex;
 	originalNodeCapacity = _nodeCapacity;
 	originalC = _C;
+	subTreeVertices = _subTreeVertices;
+	subTreeVerticesUsed = true;
 }
 
 bool Simulation::simulate(CondensedMultiGraph& finalC)
@@ -58,7 +67,9 @@ bool Simulation::simulate(CondensedMultiGraph& finalC)
 			}
 			else // construct the block-cutpoint tree and run algorithm 5
 			{
-				BlockCutpointTree BCT(&G, art, apLevel, originalNode);
+				set<int> subTreeNode = G.GetNodeFromVertices(subTreeVertices);
+				//BlockCutpointTree BCT = subTreeVerticesUsed ? BlockCutpointTree(&G, art, apLevel, originalNode, subTreeNode) : BlockCutpointTree(&G, art, apLevel, originalNode);
+				BlockCutpointTree BCT = BlockCutpointTree(&G, art, apLevel, originalNode, subTreeNode);
 
 				while (true)
 				{
@@ -96,17 +107,30 @@ bool Simulation::simulate(CondensedMultiGraph& finalC)
 						if (!BCT.Children[Block].empty())
 						{
 							int to = BCT.ParentAP[Block];
-							if (to == -1)
-								to = G.nh;
-							set<int> temp = BCT.Blocks[Block];
-							temp.erase(to);
-							int from = *temp.begin();
+							int from;
+							if (to == -1)//this is the root node
+							{
+								from = G.nh;
+								set<int> temp = BCT.Blocks[Block];
+								temp.erase(from);
+								to = *temp.begin();
+							}
+							else
+							{
+								set<int> temp = BCT.Blocks[Block];
+								temp.erase(to);
+								from = *temp.begin();
+							}
 							if (G.ExistAFeasibleMergerEdge(from, to, &Cd))
 							{
 								// DO SIMULATION CODE HERE
 								int capacity = G.capacities[parentAP];
 								int vertex = G.C->vertices[G.nodes[parentAP][0]][0];
-								Simulation sim(Cd, vertex, capacity);
+								set<int> sTreeNodes = BCT.GetSubTreeNodes(Block);
+								set<int> sTreeVertices;
+								for (set<int>::iterator itrs = sTreeNodes.begin(); itrs != sTreeNodes.end(); itrs++)
+									sTreeVertices.insert(G.C->vertices[G.nodes[*itrs][0]][0]);
+								Simulation sim(Cd, vertex, capacity, sTreeVertices);
 								if (sim.simulate(Cd))
 								{
 									STACK.push(make_pair(Cd, level + 1));
@@ -147,7 +171,11 @@ bool Simulation::simulate(CondensedMultiGraph& finalC)
 								// DO SIMULATION CODE HERE
 								int capacity = G.capacities[parentAP];
 								int vertex = G.C->vertices[G.nodes[parentAP][0]][0];
-								Simulation sim(Cd, vertex, capacity);
+								set<int> sTreeNodes = BCT.GetSubTreeNodes(Block);
+								set<int> sTreeVertices;
+								for (set<int>::iterator itrs = sTreeNodes.begin(); itrs != sTreeNodes.end(); itrs++)
+									sTreeVertices.insert(G.C->vertices[G.nodes[*itrs][0]][0]);
+								Simulation sim(Cd, vertex, capacity, sTreeVertices);
 								if (sim.simulate(Cd))
 								{
 									STACK.push(make_pair(Cd, level + 1));
@@ -170,9 +198,17 @@ bool Simulation::simulate(CondensedMultiGraph& finalC)
 						}
 						else
 						{
-							// Do Nothing (Terminate)
-							cout << "  nothing pushing to stack due to Algorithm 6 Case III at level = " << level << endl;
-							break;
+							if (simulate)
+							{
+								BCT.Processed[Block] = true;
+								cout << "  Marking block as processed due to Algorithm 6 case IV at level = " << level << endl;
+							}
+							else
+							{
+								// Do Nothing (Terminate)
+								cout << "  nothing pushing to stack due to Algorithm 6 Case IV at level = " << level << endl;
+								break;
+							}
 						}
 					}
 					else // CASE V

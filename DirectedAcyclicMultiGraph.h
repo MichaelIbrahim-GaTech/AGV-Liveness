@@ -33,6 +33,7 @@ public:
 	vector<map<int, vector<int>>> collapsedPaths;//from-to, vector of collapsed vertices
 	void GetMergedVertices(vector<int> _path, vector<int>& _mergedVertices);
 	int GetNodeFromVertexNumber(int _vertex);
+	set<int> GetNodeFromVertices(set<int> _vertices);
 
 	DirectedAcyclicMultiGraph() {}
 	DirectedAcyclicMultiGraph(const DirectedAcyclicMultiGraph&);

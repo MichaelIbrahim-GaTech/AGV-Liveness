@@ -1385,3 +1385,35 @@ int DirectedAcyclicMultiGraph::GetNodeFromVertexNumber(int _vertex)
 	}
 	return false;
 }
+
+set<int> DirectedAcyclicMultiGraph::GetNodeFromVertices(set<int> _vertices)
+{
+	set<int> ConsideredCs;
+	set<int> ConsideredNodes;
+	for (int i = 0; i < C->vertices.size(); i++)
+	{
+		for (int j = 0; j < C->vertices[i].size(); j++)
+		{
+			if (_vertices.find(C->vertices[i][j]) != _vertices.end())
+			{
+				ConsideredCs.insert(i);
+				break;
+			}
+		}
+	}
+
+
+	for (int n = 0; n < nodes.size(); n++)
+	{
+		for (int k = 0; k < nodes[n].size(); k++)
+		{
+			if (ConsideredCs.find(nodes[n][k]) != ConsideredCs.end())
+			{
+				ConsideredNodes.insert(n);
+				break;
+			}
+		}
+	}
+
+	return ConsideredNodes;
+}

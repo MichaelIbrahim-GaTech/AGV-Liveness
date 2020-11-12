@@ -16,7 +16,7 @@ public:
 	//call Algorithm2
 	bool IsThereATerminalNodeThatDoesntHaveMaximalCapacity(CondensedMultiGraph* _C);
 	//call Algorithm3
-	bool ExistAMeregerSequenceForATerminalNode(CondensedMultiGraph* _C, bool& _terminate, bool& _simulate);
+	bool ExistAMeregerSequenceForATerminalNode(CondensedMultiGraph* _C, bool& _terminate, bool& _simulate, bool& _parentFault);
 	//implements Algorithm4 in NAHS paper
 	void Algorithm4_NAHS(CondensedMultiGraph* _C);
 };

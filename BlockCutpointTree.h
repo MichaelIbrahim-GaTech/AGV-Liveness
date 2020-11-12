@@ -22,6 +22,9 @@ public:
 
 	int GetNextBlockToProcess();
 	BlockCutpointTree(DirectedAcyclicMultiGraph* _U, vector<int> art, vector<int> level);
-	BlockCutpointTree(DirectedAcyclicMultiGraph* _U, vector<int> art, vector<int> level, int _subtree);
+	//BlockCutpointTree(DirectedAcyclicMultiGraph* _U, vector<int> art, vector<int> level, int _subtree);
+	BlockCutpointTree(DirectedAcyclicMultiGraph* _U, vector<int> art, vector<int> level, int _subtree, set<int> _subtreeNodes);
+
+	set<int> GetSubTreeNodes(int block);
 };
 

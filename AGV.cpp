@@ -265,7 +265,7 @@ bool AGV::IsLive()
 				}
 				else // construct the block-cutpoint tree and run algorithm 5
 				{
-					BlockCutpointTree BCT(&G, art, apLevel);
+					BlockCutpointTree BCT = BlockCutpointTree(&G, art, apLevel);
 
 					while (true)
 					{
@@ -303,17 +303,30 @@ bool AGV::IsLive()
 							if (!BCT.Children[Block].empty())
 							{
 								int to = BCT.ParentAP[Block];
+								int from;
 								if (to == -1)
-									to = G.nh;
-								set<int> temp = BCT.Blocks[Block];
-								temp.erase(to);
-								int from = *temp.begin();
+								{
+									from = G.nh;
+									set<int> temp = BCT.Blocks[Block];
+									temp.erase(from);
+									to = *temp.begin();
+								}
+								else
+								{
+									set<int> temp = BCT.Blocks[Block];
+									temp.erase(to);
+									from = *temp.begin();
+								}
 								if (G.ExistAFeasibleMergerEdge(from, to, &Cd))
 								{
 									// DO SIMULATION CODE HERE
 									int capacity = G.capacities[parentAP];
 									int vertex = G.C->vertices[G.nodes[parentAP][0]][0];
-									Simulation sim(Cd, vertex, capacity);
+									set<int> sTreeNodes = BCT.GetSubTreeNodes(Block);
+									set<int> sTreeVertices;
+									for (set<int>::iterator itrs = sTreeNodes.begin(); itrs != sTreeNodes.end(); itrs++)
+										sTreeVertices.insert(G.C->vertices[G.nodes[*itrs][0]][0]);
+									Simulation sim(Cd, vertex, capacity, sTreeVertices);
 									if (sim.simulate(Cd))
 									{
 										STACK.push(make_pair(Cd, level + 1));
@@ -354,7 +367,11 @@ bool AGV::IsLive()
 									// DO SIMULATION CODE HERE
 									int capacity = G.capacities[parentAP];
 									int vertex = G.C->vertices[G.nodes[parentAP][0]][0];
-									Simulation sim(Cd, vertex, capacity);
+									set<int> sTreeNodes = BCT.GetSubTreeNodes(Block);
+									set<int> sTreeVertices;
+									for (set<int>::iterator itrs = sTreeNodes.begin(); itrs != sTreeNodes.end(); itrs++)
+										sTreeVertices.insert(G.C->vertices[G.nodes[*itrs][0]][0]);
+									Simulation sim(Cd, vertex, capacity, sTreeVertices);
 									if (sim.simulate(Cd))
 									{
 										STACK.push(make_pair(Cd, level + 1));
@@ -377,9 +394,17 @@ bool AGV::IsLive()
 							}
 							else
 							{
-								// Do Nothing (Terminate)
-								cout << "  nothing pushing to stack due to Algorithm 6 Case III at level = " << level << endl;
-								break;
+								if (simulate)
+								{
+									BCT.Processed[Block] = true;
+									cout << "  Marking block as processed due to Algorithm 6 case IV at level = " << level << endl;
+								}
+								else
+								{
+									// Do Nothing (Terminate)
+									cout << "  nothing pushing to stack due to Algorithm 6 Case IV at level = " << level << endl;
+									break;
+								}
 							}
 						}
 						else // CASE V
